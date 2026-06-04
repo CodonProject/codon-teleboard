@@ -1,0 +1,9 @@
+# client
+requests
+numpy
+
+# server
+fastapi
+uvicorn
+python-multipart
+pillow
