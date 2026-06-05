@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CODON TELEBOARD</title>
+    <title>Teleboard</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Chart.js -->
@@ -61,9 +61,6 @@
     <header class="sticky top-0 z-50 h-16 glass-card border-b border-gray-200">
         <div id="nav-container" class="w-full px-6 h-full flex items-center justify-between transition-all duration-300">
             <div class="flex items-center gap-3">
-                <div class="w-8 h-8 rounded-lg bg-gray-900 flex items-center justify-center shadow-lg">
-                    <span class="mono text-white font-bold text-sm">C</span>
-                </div>
                 <div>
                     <h1 class="mono text-sm uppercase tracking-widest font-semibold text-gray-900" data-i18n="title">CODON TELEBOARD</h1>
                     <p class="text-[10px] text-gray-400 font-mono tracking-wider" data-i18n="academic_suite">ACADEMIC-INDUSTRIAL LAB SUITE</p>
@@ -72,12 +69,12 @@
             
             <div class="flex items-center gap-4">
                 <!-- Language Toggle Button -->
-                <button id="lang-toggle-btn" class="bg-white border border-gray-200 text-gray-700 hover:bg-gray-50 p-2 rounded-lg transition shadow-sm flex items-center gap-1.5 text-xs">
+                <button id="lang-toggle-btn" class="bg-white border border-gray-200 text-gray-700 hover:bg-gray-50 p-2 rounded-lg transition flex items-center gap-1.5 text-xs">
                     <i data-lucide="languages" class="w-3.5 h-3.5 text-gray-500"></i>
                     <span id="lang-btn-text" class="mono uppercase tracking-widest text-[10px]">EN</span>
                 </button>
 
-                <button id="refresh-btn" class="bg-white border border-gray-200 text-gray-700 hover:bg-gray-50 p-2 rounded-lg transition shadow-sm flex items-center gap-1.5 text-xs">
+                <button id="refresh-btn" class="bg-white border border-gray-200 text-gray-700 hover:bg-gray-50 p-2 rounded-lg transition flex items-center gap-1.5 text-xs">
                     <i data-lucide="refresh-cw" class="w-3.5 h-3.5"></i>
                     <span class="mono uppercase tracking-widest text-[10px]" data-i18n="refresh">Refresh</span>
                 </button>
@@ -91,7 +88,7 @@
         <!-- SIDEBAR: Run selector & controls -->
         <aside class="w-80 flex flex-col gap-6 shrink-0">
             <!-- Experiments Card -->
-            <div class="bg-white rounded-xl border border-gray-200 shadow-sm p-5 hover:shadow-md transition duration-300">
+            <div class="bg-white rounded-xl border border-gray-200 p-5">
                 <div class="flex items-center justify-between mb-4 pb-2 border-b border-gray-100">
                     <h2 class="mono uppercase text-xs font-semibold tracking-widest text-gray-900" data-i18n="experiments">Experiments</h2>
                     <span class="px-2 py-0.5 rounded text-[10px] font-mono border bg-gray-50 text-gray-600 border-gray-200" id="run-count">0 RUNS</span>
@@ -128,7 +125,7 @@
             </div>
 
             <!-- Global Controls Card -->
-            <div class="bg-white rounded-xl border border-gray-200 shadow-sm p-5 hover:shadow-md transition duration-300">
+            <div class="bg-white rounded-xl border border-gray-200 p-5">
                 <h2 class="mono uppercase text-xs font-semibold tracking-widest text-gray-900 mb-4 pb-2 border-b border-gray-100" data-i18n="chart_controls">Chart Controls</h2>
                 
                 <!-- Smooth control -->
@@ -153,10 +150,19 @@
                 </div>
 
                 <!-- Hide raw data under EMA -->
-                <div class="flex items-center justify-between">
+                <div class="flex items-center justify-between mb-4">
                     <span class="mono uppercase text-[10px] tracking-wider text-gray-600" data-i18n="hide_raw_data">Hide Raw Data</span>
                     <label class="relative inline-flex items-center cursor-pointer">
                         <input type="checkbox" id="hide-raw-data" class="sr-only peer">
+                        <div class="w-8 h-4 bg-gray-200 rounded-full peer peer-focus:ring-0 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-3 after:w-3 after:transition-all peer-checked:bg-gray-900"></div>
+                    </label>
+                </div>
+
+                <!-- Auto-open new runs -->
+                <div class="flex items-center justify-between">
+                    <span class="mono uppercase text-[10px] tracking-wider text-gray-600" data-i18n="auto_open_new">Auto-open New Runs</span>
+                    <label class="relative inline-flex items-center cursor-pointer">
+                        <input type="checkbox" id="auto-open-new" class="sr-only peer" checked>
                         <div class="w-8 h-4 bg-gray-200 rounded-full peer peer-focus:ring-0 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-3 after:w-3 after:transition-all peer-checked:bg-gray-900"></div>
                     </label>
                 </div>
@@ -166,8 +172,8 @@
         <!-- DASHBOARD WORKSPACE -->
         <section class="flex-1 flex flex-col gap-6 overflow-hidden">
             <!-- Tabs Navigator -->
-            <div class="bg-white rounded-xl border border-gray-200 p-1.5 shadow-sm flex gap-1">
-                <button class="tab-btn flex items-center gap-2 px-4 py-2 text-xs font-medium rounded-lg transition duration-200 active-tab bg-gray-950 text-white shadow" data-tab="scalars">
+            <div class="bg-white rounded-xl border border-gray-200 p-1.5 flex gap-1">
+                <button class="tab-btn flex items-center gap-2 px-4 py-2 text-xs font-medium rounded-lg transition duration-200 active-tab bg-gray-950 text-white" data-tab="scalars">
                     <i data-lucide="line-chart" class="w-3.5 h-3.5"></i>
                     <span class="mono uppercase tracking-widest text-[10px]" data-i18n="curves_tab">Curves</span>
                 </button>
@@ -191,13 +197,13 @@
                 <!-- SCALARS TAB -->
                 <div id="tab-scalars" class="tab-content flex flex-col gap-6">
                     <!-- Filter and Tag List Card -->
-                    <div class="bg-white rounded-xl border border-gray-200 shadow-sm p-5">
+                    <div class="bg-white rounded-xl border border-gray-200 p-5">
                         <div class="flex items-center justify-between mb-4 pb-2 border-b border-gray-100">
                             <h3 class="mono uppercase text-xs font-semibold tracking-widest text-gray-900 flex items-center gap-2">
                                 <i data-lucide="tags" class="w-4 h-4 text-gray-500"></i>
                                 <span data-i18n="metric_tags">Metric Tags</span>
                             </h3>
-                            <button id="select-all-tags" class="text-[10px] font-mono border bg-white border-gray-200 text-gray-700 hover:bg-gray-50 px-2 py-0.5 rounded shadow-sm" data-i18n="select_all">SELECT ALL</button>
+                            <button id="select-all-tags" class="text-[10px] font-mono border bg-white border-gray-200 text-gray-700 hover:bg-gray-50 px-2 py-0.5 rounded" data-i18n="select_all">SELECT ALL</button>
                         </div>
                         <div id="metric-tags-container" class="flex flex-wrap gap-2">
                             <!-- Metrics injected here -->
@@ -213,7 +219,7 @@
 
                 <!-- TEXTS TAB -->
                 <div id="tab-texts" class="tab-content hidden flex flex-col gap-6">
-                    <div class="bg-white rounded-xl border border-gray-200 shadow-sm p-5">
+                    <div class="bg-white rounded-xl border border-gray-200 p-5">
                         <h3 class="mono uppercase text-xs font-semibold tracking-widest text-gray-900 mb-4 pb-2 border-b border-gray-100 flex items-center gap-2">
                             <i data-lucide="terminal" class="w-4 h-4 text-gray-500"></i>
                             <span data-i18n="text_logs_console">Text logs console</span>
@@ -227,7 +233,7 @@
 
                 <!-- IMAGES TAB -->
                 <div id="tab-images" class="tab-content hidden flex flex-col gap-6">
-                    <div class="bg-white rounded-xl border border-gray-200 shadow-sm p-5">
+                    <div class="bg-white rounded-xl border border-gray-200 p-5">
                         <h3 class="mono uppercase text-xs font-semibold tracking-widest text-gray-900 mb-4 pb-2 border-b border-gray-100 flex items-center gap-2">
                             <i data-lucide="eye" class="w-4 h-4 text-gray-500"></i>
                             <span data-i18n="image_gallery">Image assets gallery</span>
@@ -241,7 +247,7 @@
 
                 <!-- AUDIOS TAB -->
                 <div id="tab-audios" class="tab-content hidden flex flex-col gap-6">
-                    <div class="bg-white rounded-xl border border-gray-200 shadow-sm p-5">
+                    <div class="bg-white rounded-xl border border-gray-200 p-5">
                         <h3 class="mono uppercase text-xs font-semibold tracking-widest text-gray-900 mb-4 pb-2 border-b border-gray-100 flex items-center gap-2">
                             <i data-lucide="volume-2" class="w-4 h-4 text-gray-500"></i>
                             <span data-i18n="audio_gallery">Acoustic assets playback</span>
@@ -261,8 +267,8 @@
     <!-- FOOTER -->
     <footer class="h-12 border-t border-gray-200 glass-card mt-auto flex items-center">
         <div id="footer-container" class="w-full px-6 flex justify-between items-center text-[10px] text-gray-400 font-mono uppercase tracking-wider transition-all duration-300">
-            <span data-i18n="footer_copy">Codon Lab &copy; 2026. Academic Research Infrastructure.</span>
-            <span>Ver. 1.0.1-FileBackend</span>
+            <span data-i18n="footer_copy">Codon Project. Academic Research Infrastructure.</span>
+            <span>Ver. 0.0.1-alpha.2</span>
         </div>
     </footer>
 
@@ -271,11 +277,8 @@
         // TRANSLATION DICTIONARY
         const TRANSLATIONS = {
             zh: {
-                title: "CODON TELEBOARD",
-                academic_suite: "学术-工业级实验室面板",
-                active: "系统活跃中",
-                expand: "全局展开",
-                contract: "全局收起",
+                title: "Teleboard",
+                academic_suite: "学术实验面板",
                 refresh: "刷新",
                 experiments: "实验列表",
                 runs: "个运行",
@@ -287,6 +290,7 @@
                 ema_desc: "指数移动平均修正系数，用于平滑曲线中的剧烈波动。",
                 auto_refresh: "自动刷新",
                 hide_raw_data: "EMA隐藏原始数据",
+                auto_open_new: "默认打开新运行",
                 curves_tab: "曲线数据",
                 texts_tab: "文本日志",
                 images_tab: "图像资源",
@@ -297,7 +301,7 @@
                 no_runs_hint: "未发现实验。请使用 TeleWriter 客户端记录数据。",
                 loading_experiments: "正在加载实验...",
                 select_experiments_scalar: "请在上方选择指标标签以显示曲线图。",
-                select_experiments_text: "请选择活跃实验以渲染文本日志。",
+                select_experiments_text: "请选择包含文本日志的活跃实验。",
                 no_text_logs: "当前选中的实验中未发现文本日志。",
                 select_experiments_image: "请选择包含图像日志的活跃实验。",
                 no_image_logs: "当前选中的实验中未发现图像日志。",
@@ -313,7 +317,7 @@
                 latest_3_steps: "仅显示最新的 3 步",
                 no_tags_hint: "请至少选择一个实验以加载指标标签。",
                 no_tags_found: "所选实验中未发现任何指标标签。",
-                footer_copy: "Codon Lab &copy; 2026. 学术研究基础设施。",
+                footer_copy: "Codon Project. 学术研究基础设施。",
                 expand_chart: "展开宽度",
                 contract_chart: "还原宽度",
                 toggle_log: "对数",
@@ -321,15 +325,12 @@
                 show_all: "显示全部",
                 hide_all: "隐藏全部",
                 last_updated: "最近更新",
-                line_descriptions: "线条数据描述（点击切换可见性）",
+                line_descriptions: "数据描述（点击切换可见性）",
                 audio_warning: "您的浏览器不支持标准音频播放。"
             },
             en: {
-                title: "CODON TELEBOARD",
-                academic_suite: "ACADEMIC-INDUSTRIAL LAB SUITE",
-                active: "SYS_ACTIVE_OK",
-                expand: "Expand",
-                contract: "Contract",
+                title: "Teleboard",
+                academic_suite: "ACADEMIC LAB SUITE",
                 refresh: "Refresh",
                 experiments: "Experiments",
                 runs: "RUNS",
@@ -341,6 +342,7 @@
                 ema_desc: "Exponential moving average modifier to suppress volatile fluctuations in curves.",
                 auto_refresh: "Auto Refresh",
                 hide_raw_data: "EMA Hide Raw Data",
+                auto_open_new: "Auto-open New Runs",
                 curves_tab: "Curves",
                 texts_tab: "Texts",
                 images_tab: "Images",
@@ -351,7 +353,7 @@
                 no_runs_hint: "No runs discovered. Use TeleWriter client to log data.",
                 loading_experiments: "Loading experiments...",
                 select_experiments_scalar: "Please select metric tags above to display logs plots.",
-                select_experiments_text: "Select active experiments to render textual metadata logs.",
+                select_experiments_text: "Select active experiments containing textual metadata logs.",
                 no_text_logs: "No text logs discovered for current selected experiments.",
                 select_experiments_image: "Select active experiments containing image logs.",
                 no_image_logs: "No image logs discovered for current selected experiments.",
@@ -367,7 +369,7 @@
                 latest_3_steps: "Only showing latest 3 steps",
                 no_tags_hint: "Select at least one experiment to load metric tags.",
                 no_tags_found: "No metric tags discovered in selected experiments.",
-                footer_copy: "Codon Lab &copy; 2026. Academic Research Infrastructure.",
+                footer_copy: "Codon Project. Academic Research Infrastructure.",
                 expand_chart: "Expand Width",
                 contract_chart: "Contract Width",
                 toggle_log: "LOG",
@@ -389,6 +391,7 @@
         let expandedCharts = new Set(JSON.parse(localStorage.getItem('teleboard_expanded_charts')) || []);
         let hiddenDatasets = {}; // tag -> { runId: boolean }
         let hideRawData = localStorage.getItem('teleboard_hide_raw_data') === 'true';
+        let autoOpenNewRuns = localStorage.getItem('teleboard_auto_open_new_runs') !== 'false'; // default is true
         let currentLang = localStorage.getItem('teleboard_language') || (navigator.language.startsWith('zh') ? 'zh' : 'en');
         let selectedTags = new Set();
         let chartsMap = {}; // tag -> Chart instance
@@ -482,6 +485,17 @@
         }
 
         function handleRunsUpdate(runs) {
+            // Find if there are any new runs (not present in old allRuns list)
+            let isFirstLoad = allRuns.length === 0;
+            let newRunsFound = [];
+            if (!isFirstLoad && runs && runs.length > 0) {
+                runs.forEach(run => {
+                    if (!allRuns.some(oldRun => oldRun.exp_id === run.exp_id)) {
+                        newRunsFound.push(run.exp_id);
+                    }
+                });
+            }
+
             allRuns = runs;
             document.getElementById('run-count').textContent = `${allRuns.length} ${getTranslation('runs')}`;
             renderRunsList(false);
@@ -489,7 +503,15 @@
             // Sync selected runs
             const oldSelectedCount = selectedRuns.length;
             selectedRuns = selectedRuns.filter(id => allRuns.some(r => r.exp_id === id));
-            if (oldSelectedCount === 0 && allRuns.length > 0 && selectedRuns.length === 0) {
+            
+            // Auto open new runs if enabled and it's not the first load
+            if (!isFirstLoad && autoOpenNewRuns && newRunsFound.length > 0) {
+                newRunsFound.forEach(newId => {
+                    if (!selectedRuns.includes(newId)) {
+                        selectedRuns.push(newId);
+                    }
+                });
+            } else if (oldSelectedCount === 0 && allRuns.length > 0 && selectedRuns.length === 0) {
                 selectedRuns.push(allRuns[0].exp_id);
             }
             
@@ -609,6 +631,13 @@
                 if (activeTab === 'scalars') {
                     renderScalars();
                 }
+            });
+
+            const autoOpenNewCb = document.getElementById('auto-open-new');
+            autoOpenNewCb.checked = autoOpenNewRuns;
+            autoOpenNewCb.addEventListener('change', (e) => {
+                autoOpenNewRuns = e.target.checked;
+                localStorage.setItem('teleboard_auto_open_new_runs', autoOpenNewRuns);
             });
 
             document.getElementById('refresh-btn').addEventListener('click', () => {
@@ -938,6 +967,50 @@
             return smoothed;
         }
 
+        // LOGARITHMIC SCALE LIMITS CALCULATION WITH 8% GRACE PADDING
+        function calculateLogScaleLimits(datasets, hiddenMap) {
+            let minY = Infinity;
+            let maxY = -Infinity;
+
+            (datasets || []).forEach(dataset => {
+                const isRaw = dataset.label.endsWith(' (raw)');
+                const baseLabel = isRaw ? dataset.label.slice(0, -6) : dataset.label;
+                const isHidden = hiddenMap?.[baseLabel] === true;
+                
+                if (!isHidden) {
+                    dataset.data.forEach(pt => {
+                        const yVal = pt.y;
+                        if (typeof yVal === 'number' && !isNaN(yVal) && yVal > 0) {
+                            if (yVal < minY) minY = yVal;
+                            if (yVal > maxY) maxY = yVal;
+                        }
+                    });
+                }
+            });
+
+            if (minY === Infinity || maxY === -Infinity) {
+                return { min: 0.1, max: 10 };
+            }
+
+            if (minY === maxY) {
+                const logVal = Math.log10(minY);
+                return {
+                    min: Math.pow(10, logVal - 0.5),
+                    max: Math.pow(10, logVal + 0.5)
+                };
+            }
+
+            const logMin = Math.log10(minY);
+            const logMax = Math.log10(maxY);
+            const range = logMax - logMin;
+            const padding = range * 0.08;
+
+            return {
+                min: Math.pow(10, logMin - padding),
+                max: Math.pow(10, logMax + padding)
+            };
+        }
+
         // --- INDIVIDUAL WIDTH EXPANSION CONTROL ---
         function toggleChartWidth(tag) {
             if (expandedCharts.has(tag)) {
@@ -1087,6 +1160,18 @@
                 const isHidden = hiddenDatasets[tag]?.[baseLabel] === true;
                 chart.setDatasetVisibility(idx, !isHidden);
             });
+
+            // Update logarithmic scale limits if active to ensure log-y margin padding behaves correctly
+            const isLogScale = logarithmicCharts.includes(tag);
+            if (isLogScale) {
+                const limits = calculateLogScaleLimits(chart.data.datasets, hiddenDatasets[tag]);
+                chart.options.scales.y.min = limits.min;
+                chart.options.scales.y.max = limits.max;
+            } else {
+                chart.options.scales.y.min = undefined;
+                chart.options.scales.y.max = undefined;
+            }
+
             chart.update('none'); // Update without animation
         }
 
@@ -1237,6 +1322,11 @@
                 if (chartsMap[tag]) {
                     chartsMap[tag].destroy(); // Destroy and recreate to properly apply changes
                 }
+
+                let logLimits = null;
+                if (isLogScale) {
+                    logLimits = calculateLogScaleLimits(datasets, hiddenDatasets[tag]);
+                }
                 
                 chartsMap[tag] = new Chart(ctx, {
                     type: 'line',
@@ -1269,6 +1359,8 @@
                             y: {
                                 type: isLogScale ? 'logarithmic' : 'linear',
                                 grace: '8%', // Extends min/max y value range slightly (8%) to create elegant spacing at the bottom & top
+                                min: isLogScale && logLimits ? logLimits.min : undefined,
+                                max: isLogScale && logLimits ? logLimits.max : undefined,
                                 title: { display: true, text: isLogScale ? `${getTranslation('plot').toUpperCase()} (LOG)` : getTranslation('plot').toUpperCase(), font: { family: 'JetBrains Mono', size: 9, weight: 'bold' } },
                                 grid: { color: 'rgba(243, 244, 246, 0.8)' },
                                 ticks: { 
@@ -1348,7 +1440,7 @@
                 Object.keys(data).forEach(tag => {
                     hasAnyLogs = true;
                     html += `
-                        <div class="border border-gray-150 rounded-xl overflow-hidden shadow-xs bg-[#fdfdfd]">
+                        <div class="border border-gray-150 rounded-xl overflow-hidden bg-[#fdfdfd]">
                             <div class="px-4 py-2.5 bg-gray-50 flex items-center justify-between border-b border-gray-150">
                                 <div class="flex items-center gap-2">
                                     <div class="w-2 h-2 rounded-full" style="background-color: ${color}"></div>
@@ -1402,7 +1494,7 @@
                     const firstImg = logPoints[logPoints.length - 1]; // defaults to latest image step
 
                     html += `
-                        <div class="border border-gray-200 rounded-xl bg-[#fafafa] p-4 flex flex-col md:flex-row gap-6 shadow-xs">
+                        <div class="border border-gray-200 rounded-xl bg-[#fafafa] p-4 flex flex-col md:flex-row gap-6">
                             
                             <!-- Control Panel Left -->
                             <div class="md:w-64 flex flex-col justify-between shrink-0">
@@ -1433,7 +1525,7 @@
                             </div>
 
                             <!-- Preview Right -->
-                            <div class="flex-1 flex items-center justify-center bg-white border border-gray-150 rounded-xl overflow-hidden p-2 min-h-64 shadow-inner">
+                            <div class="flex-1 flex items-center justify-center bg-white border border-gray-150 rounded-xl overflow-hidden p-2 min-h-64">
                                 <img id="img-${safeTag}" src="${firstImg.url}" class="max-h-72 object-contain rounded-lg hover:scale-[1.03] transition duration-300">
                             </div>
 
@@ -1479,7 +1571,7 @@
                 Object.keys(data).forEach(tag => {
                     hasAnyAudios = true;
                     html += `
-                        <div class="border border-gray-200 bg-[#fdfdfd] rounded-xl p-5 shadow-xs flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
+                        <div class="border border-gray-200 bg-[#fdfdfd] rounded-xl p-5 flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
                             
                             <!-- Audio Description -->
                             <div class="space-y-2 max-w-sm shrink-0">
@@ -1493,7 +1585,7 @@
                             <!-- Players list inside this tag (usually multiple steps) -->
                             <div class="flex-1 space-y-3 w-full">
                                 ${data[tag].slice(-3).reverse().map(item => `
-                                    <div class="flex items-center justify-between gap-4 p-2.5 bg-gray-50 rounded-lg border border-gray-150 shadow-xs">
+                                    <div class="flex items-center justify-between gap-4 p-2.5 bg-gray-50 rounded-lg border border-gray-150">
                                         <span class="mono text-[10px] text-gray-500 font-semibold shrink-0">${getTranslation('step').toUpperCase()} ${item.step}</span>
                                         <audio controls class="h-8 max-w-full flex-1">
                                             <source src="${item.url}" type="audio/wav">
