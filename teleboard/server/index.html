@@ -1,0 +1,1533 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CODON TELEBOARD</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@300;400;500;600&display=swap');
+        
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+
+        .mono {
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        /* Codon Lab visual rules: 40px gray grid on #fafafa */
+        .grid-bg {
+            background-color: #fafafa;
+            background-image: 
+                linear-gradient(to right, rgba(229, 231, 235, 0.5) 1px, transparent 1px),
+                linear-gradient(to bottom, rgba(229, 231, 235, 0.5) 1px, transparent 1px);
+            background-size: 40px 40px;
+        }
+
+        /* Glassmorphism Navigation */
+        .glass-card {
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+        }
+    </style>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            blue: '#2563eb',
+                            green: '#22c55e',
+                            border: '#e5e7eb',
+                            card: '#ffffff',
+                            bg: '#fafafa',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="grid-bg min-h-screen text-gray-900 flex flex-col antialiased">
+
+    <!-- NAVIGATION BAR -->
+    <header class="sticky top-0 z-50 h-16 glass-card border-b border-gray-200">
+        <div id="nav-container" class="w-full px-6 h-full flex items-center justify-between transition-all duration-300">
+            <div class="flex items-center gap-3">
+                <div class="w-8 h-8 rounded-lg bg-gray-900 flex items-center justify-center shadow-lg">
+                    <span class="mono text-white font-bold text-sm">C</span>
+                </div>
+                <div>
+                    <h1 class="mono text-sm uppercase tracking-widest font-semibold text-gray-900" data-i18n="title">CODON TELEBOARD</h1>
+                    <p class="text-[10px] text-gray-400 font-mono tracking-wider" data-i18n="academic_suite">ACADEMIC-INDUSTRIAL LAB SUITE</p>
+                </div>
+            </div>
+            
+            <div class="flex items-center gap-4">
+                <!-- Language Toggle Button -->
+                <button id="lang-toggle-btn" class="bg-white border border-gray-200 text-gray-700 hover:bg-gray-50 p-2 rounded-lg transition shadow-sm flex items-center gap-1.5 text-xs">
+                    <i data-lucide="languages" class="w-3.5 h-3.5 text-gray-500"></i>
+                    <span id="lang-btn-text" class="mono uppercase tracking-widest text-[10px]">EN</span>
+                </button>
+
+                <button id="refresh-btn" class="bg-white border border-gray-200 text-gray-700 hover:bg-gray-50 p-2 rounded-lg transition shadow-sm flex items-center gap-1.5 text-xs">
+                    <i data-lucide="refresh-cw" class="w-3.5 h-3.5"></i>
+                    <span class="mono uppercase tracking-widest text-[10px]" data-i18n="refresh">Refresh</span>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- MAIN BODY CONTAINER -->
+    <main id="main-container" class="flex-1 w-full px-6 py-8 flex gap-6 transition-all duration-300">
+        
+        <!-- SIDEBAR: Run selector & controls -->
+        <aside class="w-80 flex flex-col gap-6 shrink-0">
+            <!-- Experiments Card -->
+            <div class="bg-white rounded-xl border border-gray-200 shadow-sm p-5 hover:shadow-md transition duration-300">
+                <div class="flex items-center justify-between mb-4 pb-2 border-b border-gray-100">
+                    <h2 class="mono uppercase text-xs font-semibold tracking-widest text-gray-900" data-i18n="experiments">Experiments</h2>
+                    <span class="px-2 py-0.5 rounded text-[10px] font-mono border bg-gray-50 text-gray-600 border-gray-200" id="run-count">0 RUNS</span>
+                </div>
+                
+                <div class="mb-4">
+                    <div class="relative">
+                        <input type="text" id="run-search" data-i18n-placeholder="search_runs" placeholder="Search experiments..." class="w-full pl-8 pr-3 py-1.5 text-xs rounded-lg border border-gray-200 focus:outline-none focus:ring-1 focus:ring-gray-900 mono">
+                        <i data-lucide="search" class="w-3.5 h-3.5 absolute left-2.5 top-2.5 text-gray-400"></i>
+                    </div>
+                </div>
+
+                <!-- PINNED RUNS SECTION -->
+                <div id="pinned-section" class="mb-4 hidden space-y-2">
+                    <div class="flex items-center justify-between">
+                        <span class="mono uppercase text-[9px] tracking-wider text-gray-400 font-semibold flex items-center gap-1">
+                            <i data-lucide="pin" class="w-3 h-3 text-blue-500 fill-blue-500"></i> <span data-i18n="pinned">Pinned</span>
+                        </span>
+                    </div>
+                    <div id="pinned-runs-list" class="space-y-2">
+                        <!-- Pinned runs will go here -->
+                    </div>
+                    <hr class="border-gray-100 my-2">
+                </div>
+
+                <!-- ALL RUNS SECTION -->
+                <div id="all-runs-section" class="space-y-2">
+                    <div id="all-runs-title" class="mono uppercase text-[9px] tracking-wider text-gray-400 font-semibold hidden" data-i18n="all_runs">All Runs</div>
+                    <div id="runs-list" class="space-y-2 max-h-[350px] overflow-y-auto pr-1">
+                        <!-- Runs injected dynamically -->
+                        <div class="text-center py-6 text-xs text-gray-400" data-i18n="loading_experiments">Loading experiments...</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Global Controls Card -->
+            <div class="bg-white rounded-xl border border-gray-200 shadow-sm p-5 hover:shadow-md transition duration-300">
+                <h2 class="mono uppercase text-xs font-semibold tracking-widest text-gray-900 mb-4 pb-2 border-b border-gray-100" data-i18n="chart_controls">Chart Controls</h2>
+                
+                <!-- Smooth control -->
+                <div class="space-y-2">
+                    <div class="flex justify-between items-center text-xs">
+                        <span class="mono uppercase text-[10px] tracking-wider text-gray-600" data-i18n="ema_smoothing">EMA Smoothing</span>
+                        <span class="mono text-gray-900 font-semibold text-[11px]" id="smooth-val">0.00</span>
+                    </div>
+                    <input type="range" id="smooth-slider" min="0" max="0.99" step="0.01" value="0.00" class="w-full h-1 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-gray-900">
+                    <p class="text-[10px] text-gray-400" data-i18n="ema_desc">Exponential moving average modifier to suppress volatile fluctuations in curves.</p>
+                </div>
+
+                <hr class="my-4 border-gray-100">
+
+                <!-- Auto refresh -->
+                <div class="flex items-center justify-between mb-4">
+                    <span class="mono uppercase text-[10px] tracking-wider text-gray-600" data-i18n="auto_refresh">Auto Refresh</span>
+                    <label class="relative inline-flex items-center cursor-pointer">
+                        <input type="checkbox" id="auto-refresh" class="sr-only peer" checked>
+                        <div class="w-8 h-4 bg-gray-200 rounded-full peer peer-focus:ring-0 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-3 after:w-3 after:transition-all peer-checked:bg-gray-900"></div>
+                    </label>
+                </div>
+
+                <!-- Hide raw data under EMA -->
+                <div class="flex items-center justify-between">
+                    <span class="mono uppercase text-[10px] tracking-wider text-gray-600" data-i18n="hide_raw_data">Hide Raw Data</span>
+                    <label class="relative inline-flex items-center cursor-pointer">
+                        <input type="checkbox" id="hide-raw-data" class="sr-only peer">
+                        <div class="w-8 h-4 bg-gray-200 rounded-full peer peer-focus:ring-0 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-3 after:w-3 after:transition-all peer-checked:bg-gray-900"></div>
+                    </label>
+                </div>
+            </div>
+        </aside>
+
+        <!-- DASHBOARD WORKSPACE -->
+        <section class="flex-1 flex flex-col gap-6 overflow-hidden">
+            <!-- Tabs Navigator -->
+            <div class="bg-white rounded-xl border border-gray-200 p-1.5 shadow-sm flex gap-1">
+                <button class="tab-btn flex items-center gap-2 px-4 py-2 text-xs font-medium rounded-lg transition duration-200 active-tab bg-gray-950 text-white shadow" data-tab="scalars">
+                    <i data-lucide="line-chart" class="w-3.5 h-3.5"></i>
+                    <span class="mono uppercase tracking-widest text-[10px]" data-i18n="curves_tab">Curves</span>
+                </button>
+                <button class="tab-btn flex items-center gap-2 px-4 py-2 text-xs font-medium rounded-lg transition duration-200 text-gray-600 hover:bg-gray-50" data-tab="texts">
+                    <i data-lucide="file-text" class="w-3.5 h-3.5"></i>
+                    <span class="mono uppercase tracking-widest text-[10px]" data-i18n="texts_tab">Texts</span>
+                </button>
+                <button class="tab-btn flex items-center gap-2 px-4 py-2 text-xs font-medium rounded-lg transition duration-200 text-gray-600 hover:bg-gray-50" data-tab="images">
+                    <i data-lucide="image" class="w-3.5 h-3.5"></i>
+                    <span class="mono uppercase tracking-widest text-[10px]" data-i18n="images_tab">Images</span>
+                </button>
+                <button class="tab-btn flex items-center gap-2 px-4 py-2 text-xs font-medium rounded-lg transition duration-200 text-gray-600 hover:bg-gray-50" data-tab="audios">
+                    <i data-lucide="music" class="w-3.5 h-3.5"></i>
+                    <span class="mono uppercase tracking-widest text-[10px]" data-i18n="audios_tab">Audios</span>
+                </button>
+            </div>
+
+            <!-- TAB CONTENTS -->
+            <div class="flex-1 min-h-0 flex flex-col gap-6">
+                
+                <!-- SCALARS TAB -->
+                <div id="tab-scalars" class="tab-content flex flex-col gap-6">
+                    <!-- Filter and Tag List Card -->
+                    <div class="bg-white rounded-xl border border-gray-200 shadow-sm p-5">
+                        <div class="flex items-center justify-between mb-4 pb-2 border-b border-gray-100">
+                            <h3 class="mono uppercase text-xs font-semibold tracking-widest text-gray-900 flex items-center gap-2">
+                                <i data-lucide="tags" class="w-4 h-4 text-gray-500"></i>
+                                <span data-i18n="metric_tags">Metric Tags</span>
+                            </h3>
+                            <button id="select-all-tags" class="text-[10px] font-mono border bg-white border-gray-200 text-gray-700 hover:bg-gray-50 px-2 py-0.5 rounded shadow-sm" data-i18n="select_all">SELECT ALL</button>
+                        </div>
+                        <div id="metric-tags-container" class="flex flex-wrap gap-2">
+                            <!-- Metrics injected here -->
+                            <div class="text-xs text-gray-400 py-2" data-i18n="no_tags_hint">Select at least one experiment to load metric tags.</div>
+                        </div>
+                    </div>
+
+                    <!-- Charts Display Zone -->
+                    <div id="charts-zone" class="grid grid-cols-1 lg:grid-cols-2 gap-6 transition-all duration-300">
+                        <!-- Charts injected here -->
+                    </div>
+                </div>
+
+                <!-- TEXTS TAB -->
+                <div id="tab-texts" class="tab-content hidden flex flex-col gap-6">
+                    <div class="bg-white rounded-xl border border-gray-200 shadow-sm p-5">
+                        <h3 class="mono uppercase text-xs font-semibold tracking-widest text-gray-900 mb-4 pb-2 border-b border-gray-100 flex items-center gap-2">
+                            <i data-lucide="terminal" class="w-4 h-4 text-gray-500"></i>
+                            <span data-i18n="text_logs_console">Text logs console</span>
+                        </h3>
+                        <div id="text-logs-container" class="space-y-6 max-h-[600px] overflow-y-auto pr-2">
+                            <!-- Texts injected here -->
+                            <div class="text-center py-12 text-xs text-gray-400" data-i18n="select_experiments_text">Select active experiments to render textual metadata logs.</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- IMAGES TAB -->
+                <div id="tab-images" class="tab-content hidden flex flex-col gap-6">
+                    <div class="bg-white rounded-xl border border-gray-200 shadow-sm p-5">
+                        <h3 class="mono uppercase text-xs font-semibold tracking-widest text-gray-900 mb-4 pb-2 border-b border-gray-100 flex items-center gap-2">
+                            <i data-lucide="eye" class="w-4 h-4 text-gray-500"></i>
+                            <span data-i18n="image_gallery">Image assets gallery</span>
+                        </h3>
+                        <div id="image-gallery-container" class="space-y-8 max-h-[650px] overflow-y-auto pr-2">
+                            <!-- Images injected here -->
+                            <div class="text-center py-12 text-xs text-gray-400" data-i18n="select_experiments_image">Select active experiments containing image logs.</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- AUDIOS TAB -->
+                <div id="tab-audios" class="tab-content hidden flex flex-col gap-6">
+                    <div class="bg-white rounded-xl border border-gray-200 shadow-sm p-5">
+                        <h3 class="mono uppercase text-xs font-semibold tracking-widest text-gray-900 mb-4 pb-2 border-b border-gray-100 flex items-center gap-2">
+                            <i data-lucide="volume-2" class="w-4 h-4 text-gray-500"></i>
+                            <span data-i18n="audio_gallery">Acoustic assets playback</span>
+                        </h3>
+                        <div id="audio-gallery-container" class="space-y-6 max-h-[600px] overflow-y-auto pr-2">
+                            <!-- Audios injected here -->
+                            <div class="text-center py-12 text-xs text-gray-400" data-i18n="select_experiments_audio">Select active experiments containing audio clips.</div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
+    </main>
+
+    <!-- FOOTER -->
+    <footer class="h-12 border-t border-gray-200 glass-card mt-auto flex items-center">
+        <div id="footer-container" class="w-full px-6 flex justify-between items-center text-[10px] text-gray-400 font-mono uppercase tracking-wider transition-all duration-300">
+            <span data-i18n="footer_copy">Codon Lab &copy; 2026. Academic Research Infrastructure.</span>
+            <span>Ver. 1.0.1-FileBackend</span>
+        </div>
+    </footer>
+
+    <!-- INTERACTIVITY JAVASCRIPT -->
+    <script>
+        // TRANSLATION DICTIONARY
+        const TRANSLATIONS = {
+            zh: {
+                title: "CODON TELEBOARD",
+                academic_suite: "学术-工业级实验室面板",
+                active: "系统活跃中",
+                expand: "全局展开",
+                contract: "全局收起",
+                refresh: "刷新",
+                experiments: "实验列表",
+                runs: "个运行",
+                search_runs: "搜索实验...",
+                pinned: "已置顶",
+                all_runs: "所有运行",
+                chart_controls: "图表控制",
+                ema_smoothing: "EMA 平滑",
+                ema_desc: "指数移动平均修正系数，用于平滑曲线中的剧烈波动。",
+                auto_refresh: "自动刷新",
+                hide_raw_data: "EMA隐藏原始数据",
+                curves_tab: "曲线数据",
+                texts_tab: "文本日志",
+                images_tab: "图像资源",
+                audios_tab: "音频资源",
+                metric_tags: "指标标签",
+                select_all: "全选",
+                select_none: "取消全选",
+                no_runs_hint: "未发现实验。请使用 TeleWriter 客户端记录数据。",
+                loading_experiments: "正在加载实验...",
+                select_experiments_scalar: "请在上方选择指标标签以显示曲线图。",
+                select_experiments_text: "请选择活跃实验以渲染文本日志。",
+                no_text_logs: "当前选中的实验中未发现文本日志。",
+                select_experiments_image: "请选择包含图像日志的活跃实验。",
+                no_image_logs: "当前选中的实验中未发现图像日志。",
+                select_experiments_audio: "请选择包含音频剪辑的活跃实验。",
+                no_audio_logs: "当前选中的实验中未发现音频日志。",
+                text_logs_console: "文本日志终端",
+                image_gallery: "图像资源画廊",
+                audio_gallery: "音频资源回放",
+                active_step: "当前步数",
+                step: "步数",
+                min: "最小",
+                max: "最大",
+                latest_3_steps: "仅显示最新的 3 步",
+                no_tags_hint: "请至少选择一个实验以加载指标标签。",
+                no_tags_found: "所选实验中未发现任何指标标签。",
+                footer_copy: "Codon Lab &copy; 2026. 学术研究基础设施。",
+                expand_chart: "展开宽度",
+                contract_chart: "还原宽度",
+                toggle_log: "对数",
+                plot: "绘图",
+                show_all: "显示全部",
+                hide_all: "隐藏全部",
+                last_updated: "最近更新",
+                line_descriptions: "线条数据描述（点击切换可见性）",
+                audio_warning: "您的浏览器不支持标准音频播放。"
+            },
+            en: {
+                title: "CODON TELEBOARD",
+                academic_suite: "ACADEMIC-INDUSTRIAL LAB SUITE",
+                active: "SYS_ACTIVE_OK",
+                expand: "Expand",
+                contract: "Contract",
+                refresh: "Refresh",
+                experiments: "Experiments",
+                runs: "RUNS",
+                search_runs: "Search experiments...",
+                pinned: "Pinned",
+                all_runs: "All Runs",
+                chart_controls: "Chart Controls",
+                ema_smoothing: "EMA Smoothing",
+                ema_desc: "Exponential moving average modifier to suppress volatile fluctuations in curves.",
+                auto_refresh: "Auto Refresh",
+                hide_raw_data: "EMA Hide Raw Data",
+                curves_tab: "Curves",
+                texts_tab: "Texts",
+                images_tab: "Images",
+                audios_tab: "Audios",
+                metric_tags: "Metric Tags",
+                select_all: "SELECT ALL",
+                select_none: "DESELECT ALL",
+                no_runs_hint: "No runs discovered. Use TeleWriter client to log data.",
+                loading_experiments: "Loading experiments...",
+                select_experiments_scalar: "Please select metric tags above to display logs plots.",
+                select_experiments_text: "Select active experiments to render textual metadata logs.",
+                no_text_logs: "No text logs discovered for current selected experiments.",
+                select_experiments_image: "Select active experiments containing image logs.",
+                no_image_logs: "No image logs discovered for current selected experiments.",
+                select_experiments_audio: "Select active experiments containing audio clips.",
+                no_audio_logs: "No audio logs discovered for current selected experiments.",
+                text_logs_console: "Text logs console",
+                image_gallery: "Image assets gallery",
+                audio_gallery: "Acoustic assets playback",
+                active_step: "ACTIVE STEP",
+                step: "Step",
+                min: "MIN",
+                max: "MAX",
+                latest_3_steps: "Only showing latest 3 steps",
+                no_tags_hint: "Select at least one experiment to load metric tags.",
+                no_tags_found: "No metric tags discovered in selected experiments.",
+                footer_copy: "Codon Lab &copy; 2026. Academic Research Infrastructure.",
+                expand_chart: "Expand Width",
+                contract_chart: "Contract Width",
+                toggle_log: "LOG",
+                plot: "PLOT",
+                show_all: "SHOW ALL",
+                hide_all: "HIDE ALL",
+                last_updated: "LAST_UPDATED",
+                line_descriptions: "LINE DESCRIPTIONS (CLICK TO TOGGLE)",
+                audio_warning: "Your browser does not support standard acoustic playback."
+            }
+        };
+
+        // CONFIG & STATE
+        let allRuns = [];
+        let selectedRuns = [];
+        let pinnedRuns = JSON.parse(localStorage.getItem('teleboard_pinned_runs')) || [];
+        let pinnedCharts = JSON.parse(localStorage.getItem('teleboard_pinned_charts')) || [];
+        let logarithmicCharts = JSON.parse(localStorage.getItem('teleboard_log_charts')) || [];
+        let expandedCharts = new Set(JSON.parse(localStorage.getItem('teleboard_expanded_charts')) || []);
+        let hiddenDatasets = {}; // tag -> { runId: boolean }
+        let hideRawData = localStorage.getItem('teleboard_hide_raw_data') === 'true';
+        let currentLang = localStorage.getItem('teleboard_language') || (navigator.language.startsWith('zh') ? 'zh' : 'en');
+        let selectedTags = new Set();
+        let chartsMap = {}; // tag -> Chart instance
+        let smoothFactor = 0.0;
+        let activeTab = 'scalars';
+
+        // WEBSOCKET LOGIC
+        let ws = null;
+        let wsCache = {
+            scalars: {}, // exp_id -> data
+            texts: {},   // exp_id -> data
+            images: {},  // exp_id -> data
+            audios: {}   // exp_id -> data
+        };
+
+        function initWebSocket() {
+            const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+            const wsUrl = `${protocol}//${window.location.host}/ws`;
+            ws = new WebSocket(wsUrl);
+
+            ws.onopen = () => {
+                console.log('[WebSocket] Connection established');
+                // Request runs list immediately
+                requestRuns();
+            };
+
+            ws.onmessage = (event) => {
+                try {
+                    const message = JSON.parse(event.data);
+                    if (message.type === 'update_notice') {
+                        console.log('[WebSocket] Live update notification received');
+                        requestRuns();
+                    } else if (message.type === 'runs') {
+                        handleRunsUpdate(message.data);
+                    } else if (message.type === 'scalars') {
+                        wsCache.scalars[message.exp_id] = message.data;
+                        if (activeTab === 'scalars') {
+                            renderScalars();
+                        }
+                    } else if (message.type === 'texts') {
+                        wsCache.texts[message.exp_id] = message.data;
+                        if (activeTab === 'texts') {
+                            renderTexts();
+                        }
+                    } else if (message.type === 'images') {
+                        wsCache.images[message.exp_id] = message.data;
+                        if (activeTab === 'images') {
+                            renderImages();
+                        }
+                    } else if (message.type === 'audios') {
+                        wsCache.audios[message.exp_id] = message.data;
+                        if (activeTab === 'audios') {
+                            renderAudios();
+                        }
+                    }
+                } catch (err) {
+                    console.error('[WebSocket] Error processing message:', err);
+                }
+            };
+
+            ws.onclose = () => {
+                console.warn('[WebSocket] Connection closed. Reconnecting in 3s...');
+                setTimeout(initWebSocket, 3000);
+            };
+
+            ws.onerror = (err) => {
+                console.error('[WebSocket] Connection error:', err);
+                ws.close();
+            };
+        }
+
+        function requestRuns() {
+            if (ws && ws.readyState === WebSocket.OPEN) {
+                ws.send(JSON.stringify({ action: 'get_runs' }));
+            }
+        }
+
+        function requestDataForSelectedRuns() {
+            if (!ws || ws.readyState !== WebSocket.OPEN) return;
+            selectedRuns.forEach(expId => {
+                if (activeTab === 'scalars') {
+                    ws.send(JSON.stringify({ action: 'get_scalars', exp_id: expId }));
+                } else if (activeTab === 'texts') {
+                    ws.send(JSON.stringify({ action: 'get_texts', exp_id: expId }));
+                } else if (activeTab === 'images') {
+                    ws.send(JSON.stringify({ action: 'get_images', exp_id: expId }));
+                } else if (activeTab === 'audios') {
+                    ws.send(JSON.stringify({ action: 'get_audios', exp_id: expId }));
+                }
+            });
+        }
+
+        function handleRunsUpdate(runs) {
+            allRuns = runs;
+            document.getElementById('run-count').textContent = `${allRuns.length} ${getTranslation('runs')}`;
+            renderRunsList(false);
+            
+            // Sync selected runs
+            const oldSelectedCount = selectedRuns.length;
+            selectedRuns = selectedRuns.filter(id => allRuns.some(r => r.exp_id === id));
+            if (oldSelectedCount === 0 && allRuns.length > 0 && selectedRuns.length === 0) {
+                selectedRuns.push(allRuns[0].exp_id);
+            }
+            
+            updateSelectedRunsUI();
+            renderTagsContainer();
+            
+            // Fetch relevant data
+            requestDataForSelectedRuns();
+        }
+
+        // Academically pleasant high-contrast color palette
+        const COLOR_PALETTE = [
+            'rgba(37, 99, 235, 1)',   // Blue 600
+            'rgba(220, 38, 38, 1)',   // Red 600
+            'rgba(22, 163, 74, 1)',   // Green 600
+            'rgba(217, 119, 6, 1)',   // Amber 600
+            'rgba(124, 58, 237, 1)',  // Violet 600
+            'rgba(8, 145, 178, 1)',   // Cyan 600
+            'rgba(219, 39, 119, 1)',  // Pink 600
+            'rgba(75, 85, 99, 1)'     // Gray 600
+        ];
+
+        function getRunColor(runIndex) {
+            return COLOR_PALETTE[runIndex % COLOR_PALETTE.length];
+        }
+
+        function getTranslation(key) {
+            return TRANSLATIONS[currentLang]?.[key] || TRANSLATIONS['en']?.[key] || key;
+        }
+
+        function updateLanguageUI() {
+            // Apply translation to all tags with data-i18n
+            document.querySelectorAll('[data-i18n]').forEach(el => {
+                const key = el.getAttribute('data-i18n');
+                el.innerHTML = getTranslation(key);
+            });
+
+            // Input placeholders
+            document.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
+                const key = el.getAttribute('data-i18n-placeholder');
+                el.setAttribute('placeholder', getTranslation(key));
+            });
+
+            // Set language toggle button text
+            const langBtnText = document.getElementById('lang-btn-text');
+            if (langBtnText) {
+                langBtnText.textContent = currentLang === 'en' ? 'EN' : '中文';
+            }
+        }
+
+        // INIT LAYOUT
+        document.addEventListener('DOMContentLoaded', () => {
+            updateLanguageUI();
+            updateSelectAllButtonText();
+            lucide.createIcons();
+            initTabs();
+            initSlidersAndControls();
+            applyLayoutWidth();
+            
+            // Switch completely to WebSocket connection
+            initWebSocket();
+        });
+
+        // TABS HANDLER
+        function initTabs() {
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const tabName = btn.dataset.tab;
+                    activeTab = tabName;
+                    
+                    // Style switch
+                    document.querySelectorAll('.tab-btn').forEach(b => {
+                        b.className = "tab-btn flex items-center gap-2 px-4 py-2 text-xs font-medium rounded-lg transition duration-200 text-gray-600 hover:bg-gray-50";
+                    });
+                    btn.className = "tab-btn flex items-center gap-2 px-4 py-2 text-xs font-medium rounded-lg transition duration-200 bg-gray-950 text-white shadow";
+
+                    // Content switch
+                    document.querySelectorAll('.tab-content').forEach(cont => {
+                        cont.classList.add('hidden');
+                    });
+                    document.getElementById(`tab-${tabName}`).classList.remove('hidden');
+
+                    // If tab demands rendering
+                    renderCurrentTab();
+                });
+            });
+        }
+
+        // SLIDERS & INTERACTION CONTROLS
+        function initSlidersAndControls() {
+            const smoothSlider = document.getElementById('smooth-slider');
+            const smoothVal = document.getElementById('smooth-val');
+            
+            smoothSlider.addEventListener('input', (e) => {
+                smoothFactor = parseFloat(e.target.value);
+                smoothVal.textContent = smoothFactor.toFixed(2);
+                
+                // Re-render charts immediately on slider drag
+                if (activeTab === 'scalars') {
+                    renderScalars();
+                }
+            });
+
+            // Auto refresh toggle is kept as a dummy or mapped to WS sync since WebSocket is real-time
+            const autoRefreshCb = document.getElementById('auto-refresh');
+            autoRefreshCb.addEventListener('change', (e) => {
+                if (e.target.checked) {
+                    requestRuns();
+                }
+            });
+
+            const hideRawDataCb = document.getElementById('hide-raw-data');
+            hideRawDataCb.checked = hideRawData;
+            hideRawDataCb.addEventListener('change', (e) => {
+                hideRawData = e.target.checked;
+                localStorage.setItem('teleboard_hide_raw_data', hideRawData);
+                if (activeTab === 'scalars') {
+                    renderScalars();
+                }
+            });
+
+            document.getElementById('refresh-btn').addEventListener('click', () => {
+                requestRuns();
+            });
+
+            document.getElementById('select-all-tags').addEventListener('click', () => {
+                const visibleTags = getSelectedRunsTags();
+                const allSelected = Array.from(visibleTags).every(t => selectedTags.has(t));
+                if (allSelected) {
+                    selectedTags.clear();
+                } else {
+                    visibleTags.forEach(t => selectedTags.add(t));
+                }
+                updateSelectAllButtonText();
+                renderTagsContainer();
+                renderScalars();
+            });
+
+            // Language Toggle
+            document.getElementById('lang-toggle-btn').addEventListener('click', () => {
+                currentLang = currentLang === 'en' ? 'zh' : 'en';
+                localStorage.setItem('teleboard_language', currentLang);
+                updateLanguageUI();
+                updateSelectAllButtonText();
+                renderCurrentTab();
+                renderRunsList(false);
+                applyLayoutWidth();
+            });
+
+            // Run search filter
+            document.getElementById('run-search').addEventListener('input', (e) => {
+                filterRunsList(e.target.value);
+            });
+        }
+
+        function updateSelectAllButtonText() {
+            const btn = document.getElementById('select-all-tags');
+            if (!btn) return;
+            const visibleTags = getSelectedRunsTags();
+            if (visibleTags.size === 0) {
+                btn.innerHTML = getTranslation('select_all');
+                return;
+            }
+            const allSelected = Array.from(visibleTags).every(t => selectedTags.has(t));
+            btn.innerHTML = allSelected ? getTranslation('select_none') : getTranslation('select_all');
+        }
+
+        function applyLayoutWidth() {
+            const nav = document.getElementById('nav-container');
+            const main = document.getElementById('main-container');
+            const footer = document.getElementById('footer-container');
+            const chartsZone = document.getElementById('charts-zone');
+
+            // Expand to full screen width
+            nav.className = "w-full px-6 h-full flex items-center justify-between transition-all duration-300";
+            main.className = "flex-1 w-full px-6 py-8 flex gap-6 transition-all duration-300";
+            footer.className = "w-full px-6 flex justify-between items-center text-[10px] text-gray-400 font-mono uppercase tracking-wider transition-all duration-300";
+            chartsZone.className = "grid grid-cols-1 lg:grid-cols-2 gap-6 transition-all duration-300";
+            
+            lucide.createIcons();
+            
+            // Resize active charts
+            Object.values(chartsMap).forEach(chart => {
+                chart.resize();
+            });
+        }
+
+        function filterRunsList(query) {
+            const term = query.toLowerCase();
+            document.querySelectorAll('.run-item').forEach(item => {
+                const expId = item.dataset.expId.toLowerCase();
+                if (expId.includes(term)) {
+                    item.classList.remove('hidden');
+                } else {
+                    item.classList.add('hidden');
+                }
+            });
+        }
+
+        // LOAD EXPERIMENT RUNS LIST
+        async function loadRuns(isInitial = false) {
+            try {
+                const res = await fetch('/api/runs');
+                const runs = await res.json();
+                allRuns = runs;
+                
+                document.getElementById('run-count').textContent = `${allRuns.length} ${getTranslation('runs')}`;
+                renderRunsList(isInitial);
+                
+                // Keep selected runs in sync
+                selectedRuns = selectedRuns.filter(id => allRuns.some(r => r.exp_id === id));
+                if (isInitial && allRuns.length > 0 && selectedRuns.length === 0) {
+                    // Select first run automatically on initial startup
+                    selectedRuns.push(allRuns[0].exp_id);
+                }
+
+                updateSelectedRunsUI();
+                renderTagsContainer();
+                renderCurrentTab();
+            } catch (err) {
+                console.error("Error loading experiments:", err);
+            }
+        }
+
+        // AUTO REFRESH LOOP
+        function startAutoRefresh() {
+            stopAutoRefresh();
+            autoRefreshTimer = setInterval(() => {
+                loadRuns(false);
+            }, 5000);
+        }
+
+        function stopAutoRefresh() {
+            if (autoRefreshTimer) {
+                clearInterval(autoRefreshTimer);
+                autoRefreshTimer = null;
+            }
+        }
+
+        // RENDER RUNS LIST IN SIDEBAR WITH PINNING
+        function renderRunsList(isInitial) {
+            const listContainer = document.getElementById('runs-list');
+            const pinnedContainer = document.getElementById('pinned-runs-list');
+            const pinnedSection = document.getElementById('pinned-section');
+            const allRunsTitle = document.getElementById('all-runs-title');
+
+            if (allRuns.length === 0) {
+                listContainer.innerHTML = `<div class="text-center py-6 text-xs text-gray-400">${getTranslation('no_runs_hint')}</div>`;
+                pinnedSection.classList.add('hidden');
+                allRunsTitle.classList.add('hidden');
+                return;
+            }
+
+            const query = document.getElementById('run-search').value;
+
+            // Separate runs into pinned and unpinned
+            const pinnedList = allRuns.filter(r => pinnedRuns.includes(r.exp_id));
+            const unpinnedList = allRuns.filter(r => !pinnedRuns.includes(r.exp_id));
+
+            if (pinnedList.length > 0) {
+                pinnedSection.classList.remove('hidden');
+                allRunsTitle.classList.remove('hidden');
+            } else {
+                pinnedSection.classList.add('hidden');
+                allRunsTitle.classList.add('hidden');
+            }
+
+            const renderItem = (run) => {
+                const idx = allRuns.findIndex(r => r.exp_id === run.exp_id);
+                const dateStr = new Date(run.mtime * 1000).toLocaleString('zh-CN', { hour12: false });
+                const runColor = getRunColor(idx);
+                const isSelected = selectedRuns.includes(run.exp_id);
+                const isPinned = pinnedRuns.includes(run.exp_id);
+
+                return `
+                    <div class="run-item flex flex-col gap-1.5 p-3 rounded-lg border cursor-pointer transition ${isSelected ? 'border-gray-900 bg-gray-50/50' : 'border-gray-200 hover:bg-gray-50'} shadow-xs" 
+                         data-exp-id="${run.exp_id}">
+                        <div class="flex items-center justify-between gap-2">
+                            <div class="flex items-center gap-1.5 min-w-0" onclick="toggleRunSelection('${run.exp_id}')">
+                                <div class="w-2.5 h-2.5 rounded-full shrink-0" style="background-color: ${runColor}"></div>
+                                <span class="mono text-xs font-semibold truncate" style="color: ${isSelected ? '#111827' : '#4b5563'}" title="${run.exp_id}">${run.exp_id}</span>
+                            </div>
+                            <button onclick="togglePinRun(event, '${run.exp_id}')" class="text-gray-400 hover:text-blue-600 p-1 rounded hover:bg-gray-100 transition shrink-0">
+                                <i data-lucide="pin" class="w-3.5 h-3.5 ${isPinned ? 'text-blue-500 fill-blue-500' : ''}"></i>
+                            </button>
+                        </div>
+                        <div class="flex flex-wrap gap-1" onclick="toggleRunSelection('${run.exp_id}')">
+                            ${run.types.map(t => `<span class="px-1.5 py-0.5 rounded text-[8px] font-mono tracking-wider uppercase border bg-gray-100 text-gray-500 border-gray-200">${t}</span>`).join('')}
+                        </div>
+                        <div class="flex items-center justify-between text-[9px] text-gray-400 font-mono mt-1 pt-1.5 border-t border-gray-100/50" onclick="toggleRunSelection('${run.exp_id}')">
+                            <span>${getTranslation('last_updated')}</span>
+                            <span>${dateStr}</span>
+                        </div>
+                    </div>
+                `;
+            };
+
+            pinnedContainer.innerHTML = pinnedList.map(renderItem).join('');
+            listContainer.innerHTML = unpinnedList.map(renderItem).join('');
+            
+            lucide.createIcons();
+            if (query) filterRunsList(query);
+        }
+
+        function togglePinRun(event, expId) {
+            event.stopPropagation();
+            const index = pinnedRuns.indexOf(expId);
+            if (index > -1) {
+                pinnedRuns.splice(index, 1);
+            } else {
+                pinnedRuns.push(expId);
+            }
+            localStorage.setItem('teleboard_pinned_runs', JSON.stringify(pinnedRuns));
+            renderRunsList(false);
+            updateSelectedRunsUI();
+        }
+
+        // SELECTION LOGICS
+        function toggleRunSelection(expId) {
+            const idx = selectedRuns.indexOf(expId);
+            if (idx > -1) {
+                selectedRuns.splice(idx, 1);
+            } else {
+                selectedRuns.push(expId);
+            }
+            updateSelectedRunsUI();
+            
+            // Re-populate tags for newly selected runs
+            const visibleTags = getSelectedRunsTags();
+            // Automatically select newly found tags if none are selected yet
+            if (selectedTags.size === 0) {
+                visibleTags.forEach(t => selectedTags.add(t));
+            } else {
+                // prune non-existent tags
+                for (let t of selectedTags) {
+                    if (!visibleTags.has(t)) {
+                        selectedTags.delete(t);
+                    }
+                }
+            }
+
+            renderRunsList(false);
+            renderTagsContainer();
+            
+            // Request WS cache updates immediately for the selected/deselected runs
+            requestDataForSelectedRuns();
+            renderCurrentTab();
+        }
+
+        function updateSelectedRunsUI() {
+            // Highlighting runs visually in list
+            document.querySelectorAll('.run-item').forEach(item => {
+                const expId = item.dataset.expId;
+                if (selectedRuns.includes(expId)) {
+                    item.classList.add('border-gray-900', 'bg-gray-50/50');
+                    item.classList.remove('border-gray-200');
+                } else {
+                    item.classList.remove('border-gray-900', 'bg-gray-50/50');
+                    item.classList.add('border-gray-200');
+                }
+            });
+        }
+
+        function getSelectedRunsTags() {
+            const tags = new Set();
+            allRuns.forEach(r => {
+                if (selectedRuns.includes(r.exp_id)) {
+                    // Refined: Only grab scalar_tags for curves tab to fix the mixing tags bug
+                    const runTags = r.scalar_tags || r.tags || [];
+                    runTags.forEach(t => tags.add(t));
+                }
+            });
+            return tags;
+        }
+
+        // TAG CONTAINER RENDERING
+        function renderTagsContainer() {
+            const container = document.getElementById('metric-tags-container');
+            const visibleTags = getSelectedRunsTags();
+
+            if (selectedRuns.length === 0) {
+                container.innerHTML = `<div class="text-xs text-gray-400 py-2" data-i18n="no_tags_hint">${getTranslation('no_tags_hint')}</div>`;
+                return;
+            }
+
+            if (visibleTags.size === 0) {
+                container.innerHTML = `<div class="text-xs text-gray-400 py-2" data-i18n="no_tags_found">${getTranslation('no_tags_found')}</div>`;
+                return;
+            }
+
+            let html = '';
+            Array.from(visibleTags).sort().forEach(tag => {
+                const isChecked = selectedTags.has(tag);
+                html += `
+                    <button class="px-2 py-1 rounded text-xs font-mono border transition flex items-center gap-1.5 ${isChecked ? 'bg-blue-50 text-blue-700 border-blue-200' : 'bg-white text-gray-600 border-gray-200 hover:bg-gray-50'}"
+                            onclick="toggleTagSelection('${tag}')">
+                        <span class="w-1.5 h-1.5 rounded-full ${isChecked ? 'bg-blue-600' : 'bg-gray-400'}"></span>
+                        <span>${tag}</span>
+                    </button>
+                `;
+            });
+
+            container.innerHTML = html;
+            updateSelectAllButtonText();
+        }
+
+        function toggleTagSelection(tag) {
+            if (selectedTags.has(tag)) {
+                selectedTags.delete(tag);
+            } else {
+                selectedTags.add(tag);
+            }
+            renderTagsContainer();
+            if (activeTab === 'scalars') renderScalars();
+        }
+
+        // TRIGGER RENDER BASED ON ACTIVE TAB
+        function renderCurrentTab() {
+            if (selectedRuns.length === 0) {
+                // Render empty placeholders
+                document.getElementById('charts-zone').innerHTML = `<div class="col-span-full bg-white border border-gray-200 rounded-xl p-12 text-center text-xs text-gray-400" data-i18n="select_experiments_scalar">${getTranslation('select_experiments_scalar')}</div>`;
+                document.getElementById('text-logs-container').innerHTML = `<div class="text-center py-12 text-xs text-gray-400" data-i18n="select_experiments_text">${getTranslation('select_experiments_text')}</div>`;
+                document.getElementById('image-gallery-container').innerHTML = `<div class="text-center py-12 text-xs text-gray-400" data-i18n="select_experiments_image">${getTranslation('select_experiments_image')}</div>`;
+                document.getElementById('audio-gallery-container').innerHTML = `<div class="text-center py-12 text-xs text-gray-400" data-i18n="select_experiments_audio">${getTranslation('select_experiments_audio')}</div>`;
+                return;
+            }
+
+            requestDataForSelectedRuns();
+            
+            if (activeTab === 'scalars') renderScalars();
+            else if (activeTab === 'texts') renderTexts();
+            else if (activeTab === 'images') renderImages();
+            else if (activeTab === 'audios') renderAudios();
+        }
+
+        // EMA SMOOTHING LOGIC
+        function smoothCurve(dataPoints, factor) {
+            if (factor <= 0) return dataPoints;
+            let smoothed = [];
+            let last = dataPoints[0];
+            smoothed.push(last);
+            for (let i = 1; i < dataPoints.length; i++) {
+                last = last * factor + dataPoints[i] * (1.0 - factor);
+                smoothed.push(last);
+            }
+            return smoothed;
+        }
+
+        // --- INDIVIDUAL WIDTH EXPANSION CONTROL ---
+        function toggleChartWidth(tag) {
+            if (expandedCharts.has(tag)) {
+                expandedCharts.delete(tag);
+            } else {
+                expandedCharts.add(tag);
+            }
+            localStorage.setItem('teleboard_expanded_charts', JSON.stringify(Array.from(expandedCharts)));
+            
+            const canvasId = `chart-${tag.replace(/[\/\s\.\\]/g, '_')}`;
+            const container = document.getElementById(`container-${canvasId}`);
+            if (container) {
+                const isChartExpanded = expandedCharts.has(tag);
+                if (isChartExpanded) {
+                    container.classList.add('col-span-full');
+                } else {
+                    container.classList.remove('col-span-full');
+                }
+                
+                // Toggle Button appearance
+                const btn = container.querySelector(`.expand-chart-btn-${canvasId}`);
+                const btnIcon = container.querySelector(`.expand-chart-btn-${canvasId} i`);
+                if (btn && btnIcon) {
+                    btn.title = isChartExpanded ? getTranslation('contract_chart') : getTranslation('expand_chart');
+                    btnIcon.setAttribute('data-lucide', isChartExpanded ? 'minimize-2' : 'maximize-2');
+                    if (isChartExpanded) {
+                        btnIcon.classList.add('text-blue-500', 'fill-blue-500');
+                    } else {
+                        btnIcon.classList.remove('text-blue-500', 'fill-blue-500');
+                    }
+                    lucide.createIcons();
+                }
+            }
+            
+            // Instantly resize the chart
+            const chart = chartsMap[tag];
+            if (chart) {
+                chart.resize();
+            }
+        }
+
+        // --- CUSTOM LIST ALIGNED LEGEND GENERATOR ---
+        function toggleDatasetVisibility(tag, runId) {
+            if (!hiddenDatasets[tag]) {
+                hiddenDatasets[tag] = {};
+            }
+            hiddenDatasets[tag][runId] = !hiddenDatasets[tag][runId];
+            
+            renderCustomLegend(tag);
+        }
+
+        function toggleAllLines(tag, show) {
+            if (!hiddenDatasets[tag]) {
+                hiddenDatasets[tag] = {};
+            }
+            
+            const chart = chartsMap[tag];
+            if (chart) {
+                chart.data.datasets.forEach((dataset) => {
+                    if (!dataset.label.endsWith(' (raw)')) {
+                        hiddenDatasets[tag][dataset.label] = !show;
+                    }
+                });
+            }
+            
+            renderCustomLegend(tag);
+        }
+
+        function renderCustomLegend(tag) {
+            const canvasId = `chart-${tag.replace(/[\/\s\.\\]/g, '_')}`;
+            const legendContainer = document.getElementById(`legend-${canvasId}`);
+            if (!legendContainer) return;
+            
+            const chart = chartsMap[tag];
+            if (!chart) return;
+            
+            // Unique non-raw runs
+            const uniqueRuns = [];
+            chart.data.datasets.forEach((dataset, index) => {
+                if (!dataset.label.endsWith(' (raw)')) {
+                    uniqueRuns.push({
+                        runId: dataset.label,
+                        color: dataset.borderColor,
+                        datasetIndex: index
+                    });
+                }
+            });
+            
+            if (uniqueRuns.length === 0) {
+                legendContainer.innerHTML = '';
+                return;
+            }
+            
+            let html = `
+                <div class="mt-2 border-t border-gray-100 pt-3">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="mono text-[10px] uppercase tracking-wider text-gray-400 font-semibold">${getTranslation('line_descriptions')}</span>
+                        <div class="flex gap-2">
+                            <button onclick="toggleAllLines('${tag}', true)" class="text-[9px] font-mono hover:text-blue-600 text-gray-400 uppercase tracking-widest">${getTranslation('show_all')}</button>
+                            <span class="text-gray-200">|</span>
+                            <button onclick="toggleAllLines('${tag}', false)" class="text-[9px] font-mono hover:text-blue-600 text-gray-400 uppercase tracking-widest">${getTranslation('hide_all')}</button>
+                        </div>
+                    </div>
+                    <div class="flex flex-col gap-1.5 max-h-32 overflow-y-auto pr-1">
+            `;
+            
+            uniqueRuns.forEach(({ runId, color }) => {
+                const isHidden = hiddenDatasets[tag]?.[runId] === true;
+                
+                let latestStep = '-';
+                let latestValue = '-';
+                
+                const dataset = chart.data.datasets.find(d => d.label === runId);
+                if (dataset && dataset.data && dataset.data.length > 0) {
+                    const lastPt = dataset.data[dataset.data.length - 1];
+                    latestStep = lastPt.x;
+                    latestValue = typeof lastPt.y === 'number' ? lastPt.y.toFixed(4) : lastPt.y;
+                }
+                
+                html += `
+                    <div class="flex items-center justify-between text-xs font-mono p-1.5 rounded transition cursor-pointer ${isHidden ? 'bg-gray-50/50 opacity-40 hover:opacity-75' : 'bg-gray-50/20 hover:bg-gray-50 border-l-2'}" 
+                         style="border-color: ${isHidden ? 'transparent' : color}"
+                         onclick="toggleDatasetVisibility('${tag}', '${runId}')">
+                        <div class="flex items-center gap-2 min-w-0 flex-1">
+                            <span class="w-2.5 h-2.5 rounded-full shrink-0" style="background-color: ${color}"></span>
+                            <span class="truncate text-gray-800 ${isHidden ? 'line-through italic text-gray-400' : 'font-medium'}" title="${runId}">${runId}</span>
+                        </div>
+                        <div class="flex items-center gap-3 shrink-0 text-gray-500 font-mono text-[10px]">
+                            <span class="bg-white px-1.5 py-0.5 rounded border border-gray-100">${getTranslation('step')} ${latestStep}</span>
+                            <span class="font-bold text-gray-800 w-16 text-right">${latestValue}</span>
+                        </div>
+                    </div>
+                `;
+            });
+            
+            html += `
+                    </div>
+                </div>
+            `;
+            
+            legendContainer.innerHTML = html;
+            
+            // Set actual dataset visibilities on standard Chart.js datasets
+            chart.data.datasets.forEach((dataset, idx) => {
+                const isRaw = dataset.label.endsWith(' (raw)');
+                const baseLabel = isRaw ? dataset.label.slice(0, -6) : dataset.label;
+                const isHidden = hiddenDatasets[tag]?.[baseLabel] === true;
+                chart.setDatasetVisibility(idx, !isHidden);
+            });
+            chart.update('none'); // Update without animation
+        }
+
+        // --- SCALARS TAB IMPLEMENTATION ---
+        async function renderScalars() {
+            const chartsZone = document.getElementById('charts-zone');
+            
+            // Find active metrics across current selected tags
+            const activeMetricTags = Array.from(selectedTags);
+            if (activeMetricTags.length === 0) {
+                chartsZone.innerHTML = `<div class="col-span-full bg-white border border-gray-200 rounded-xl p-12 text-center text-xs text-gray-400" data-i18n="select_experiments_scalar">${getTranslation('select_experiments_scalar')}</div>`;
+                return;
+            }
+
+            // Fetch scalar logs for selected experiments from cache or fallback to ws request
+            let allScalarLogs = [];
+            selectedRuns.forEach(expId => {
+                const cachedData = wsCache.scalars[expId];
+                if (cachedData) {
+                    allScalarLogs.push({ expId, data: cachedData });
+                } else {
+                    allScalarLogs.push({ expId, data: {} });
+                }
+            });
+
+            // Clean up the main select-all-experiments scalar instructions completely
+            // if we are actively drawing selected tags
+            const existingNoTagsHint = chartsZone.querySelector('[data-i18n="select_experiments_scalar"]');
+            if (existingNoTagsHint) {
+                existingNoTagsHint.remove();
+            }
+
+            // Reconstruct Zone structure if needed
+            let currentCanvasIds = new Set(activeMetricTags.map(tag => `chart-${tag.replace(/[\/\s\.\\]/g, '_')}`));
+            
+            // Clean up old elements no longer selected
+            Array.from(chartsZone.children).forEach(child => {
+                const canvas = child.querySelector('canvas');
+                if (canvas && !currentCanvasIds.has(canvas.id)) {
+                    const tag = canvas.dataset.tag;
+                    if (chartsMap[tag]) {
+                        chartsMap[tag].destroy();
+                        delete chartsMap[tag];
+                    }
+                    child.remove();
+                } else if (!canvas) {
+                    // Remove non-canvas placeholder elements (like select_experiments_scalar container) immediately
+                    child.remove();
+                }
+            });
+
+            // Sort active tags: Pinned ones go first
+            const sortedMetricTags = [...activeMetricTags].sort((a, b) => {
+                const aPinned = pinnedCharts.includes(a);
+                const bPinned = pinnedCharts.includes(b);
+                if (aPinned && !bPinned) return -1;
+                if (!aPinned && bPinned) return 1;
+                return a.localeCompare(b);
+            });
+
+            // Append containers for tags that aren't built yet, keeping sorted order
+            sortedMetricTags.forEach(tag => {
+                const canvasId = `chart-${tag.replace(/[\/\s\.\\]/g, '_')}`;
+                let container = document.getElementById(`container-${canvasId}`);
+                const isChartPinned = pinnedCharts.includes(tag);
+                const isLogScale = logarithmicCharts.includes(tag);
+                const isChartExpanded = expandedCharts.has(tag);
+
+                if (!container) {
+                    container = document.createElement('div');
+                    container.id = `container-${canvasId}`;
+                    chartsZone.appendChild(container);
+                }
+
+                // Apply width class dynamically
+                container.className = `bg-white rounded-xl border border-gray-200 shadow-sm p-5 hover:shadow-md transition duration-300 flex flex-col gap-4 ${isChartExpanded ? 'col-span-full' : ''}`;
+
+                // Inject up-to-date control buttons (Pin, Width Expand, Log Scale toggle)
+                container.innerHTML = `
+                    <div class="flex items-center justify-between border-b border-gray-100 pb-2">
+                        <div class="flex items-center gap-1.5 min-w-0">
+                            <button onclick="togglePinChart('${tag}')" class="text-gray-400 hover:text-blue-600 p-1 rounded hover:bg-gray-50 transition shrink-0">
+                                <i data-lucide="pin" class="w-3.5 h-3.5 ${isChartPinned ? 'text-blue-500 fill-blue-500' : ''}"></i>
+                            </button>
+                            <span class="px-2 py-0.5 rounded text-[10px] font-mono border bg-blue-50 text-blue-700 border-blue-100 font-semibold truncate max-w-[150px] lg:max-w-[200px]" title="${tag}">${tag}</span>
+                        </div>
+                        <div class="flex items-center gap-1.5">
+                            <!-- INDIVIDUAL CHART EXPAND BUTTON -->
+                            <button onclick="toggleChartWidth('${tag}')" class="expand-chart-btn-${canvasId} text-gray-400 hover:text-blue-600 p-1 rounded hover:bg-gray-50 transition shrink-0" title="${isChartExpanded ? getTranslation('contract_chart') : getTranslation('expand_chart')}">
+                                <i data-lucide="${isChartExpanded ? 'minimize-2' : 'maximize-2'}" class="w-3.5 h-3.5 ${isChartExpanded ? 'text-blue-500 fill-blue-500' : ''}"></i>
+                            </button>
+                            
+                            <button onclick="toggleLogScale('${tag}')" class="px-2 py-0.5 text-[9px] font-mono border rounded transition ${isLogScale ? 'bg-gray-900 text-white border-gray-900' : 'bg-white text-gray-600 border-gray-200 hover:bg-gray-50'}" title="Toggle Logarithmic Y-Axis">
+                                ${getTranslation('toggle_log')}
+                            </button>
+                            <span class="mono uppercase text-[9px] tracking-widest text-gray-400" data-i18n="plot">${getTranslation('plot')}</span>
+                        </div>
+                    </div>
+                    <div class="relative w-full h-64">
+                        <canvas id="${canvasId}" data-tag="${tag}"></canvas>
+                    </div>
+                    <!-- Legend List Below -->
+                    <div id="legend-${canvasId}" class="w-full"></div>
+                `;
+
+                // Compile datasets for this metric tag across selected runs
+                const datasets = [];
+                allScalarLogs.forEach(({ expId, data }) => {
+                    if (data[tag] && data[tag].length > 0) {
+                        const runIdx = allRuns.findIndex(r => r.exp_id === expId);
+                        const color = getRunColor(runIdx);
+
+                        const steps = data[tag].map(d => d.step);
+                        const rawValues = data[tag].map(d => d.value);
+                        const smoothedValues = smoothCurve(rawValues, smoothFactor);
+
+                        // Render both original and smoothed lines
+                        datasets.push({
+                            label: `${expId}`,
+                            data: steps.map((step, idx) => ({ x: step, y: smoothedValues[idx] })),
+                            borderColor: color,
+                            backgroundColor: color.replace('1)', '0.05)'),
+                            borderWidth: 1.5,
+                            pointRadius: rawValues.length < 50 ? 2 : 0,
+                            pointHoverRadius: 4,
+                            tension: 0.1,
+                            fill: false
+                        });
+
+                        // Subtle transparent background dashed lines for raw data on hover/contrast if smoothing is present
+                        if (smoothFactor > 0.05 && !hideRawData) {
+                            datasets.push({
+                                label: `${expId} (raw)`,
+                                data: steps.map((step, idx) => ({ x: step, y: rawValues[idx] })),
+                                borderColor: color.replace('1)', '0.15)'),
+                                borderDash: [4, 4],
+                                borderWidth: 1,
+                                pointRadius: 0,
+                                fill: false,
+                                showLine: true
+                            });
+                        }
+                    }
+                });
+
+                // Update or create Chart with potential Logarithmic scale
+                const ctx = document.getElementById(canvasId).getContext('2d');
+                if (chartsMap[tag]) {
+                    chartsMap[tag].destroy(); // Destroy and recreate to properly apply changes
+                }
+                
+                chartsMap[tag] = new Chart(ctx, {
+                    type: 'line',
+                    data: { datasets },
+                    options: {
+                        animation: false,
+                        animations: false,
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        interaction: {
+                            mode: 'index',
+                            intersect: false,
+                        },
+                        plugins: {
+                            legend: {
+                                display: false // Disables the default built-in top legends
+                            },
+                            tooltip: {
+                                bodyFont: { family: 'Inter', size: 11 },
+                                titleFont: { family: 'JetBrains Mono', size: 10 }
+                            }
+                        },
+                        scales: {
+                            x: {
+                                type: 'linear',
+                                title: { display: true, text: getTranslation('step').toUpperCase(), font: { family: 'JetBrains Mono', size: 9, weight: 'bold' } },
+                                grid: { color: 'rgba(243, 244, 246, 0.8)' },
+                                ticks: { font: { family: 'JetBrains Mono', size: 9 } }
+                            },
+                            y: {
+                                type: isLogScale ? 'logarithmic' : 'linear',
+                                grace: '8%', // Extends min/max y value range slightly (8%) to create elegant spacing at the bottom & top
+                                title: { display: true, text: isLogScale ? `${getTranslation('plot').toUpperCase()} (LOG)` : getTranslation('plot').toUpperCase(), font: { family: 'JetBrains Mono', size: 9, weight: 'bold' } },
+                                grid: { color: 'rgba(243, 244, 246, 0.8)' },
+                                ticks: { 
+                                    font: { family: 'JetBrains Mono', size: 9 },
+                                    callback: function(value, index, ticks) {
+                                        if (isLogScale) {
+                                            // Format nice values for log axis
+                                            const remain = value / (Math.pow(10, Math.floor(Math.log10(value))));
+                                            if (remain === 1 || remain === 2 || remain === 5) {
+                                                return value.toExponential(0);
+                                            }
+                                            return null;
+                                        }
+                                        return value;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                });
+
+                // Render customized legend below
+                renderCustomLegend(tag);
+            });
+
+            // Adjust element placement in DOM to reflect sorted list (pinned on top)
+            sortedMetricTags.forEach(tag => {
+                const canvasId = `chart-${tag.replace(/[\/\s\.\\]/g, '_')}`;
+                const container = document.getElementById(`container-${canvasId}`);
+                if (container) chartsZone.appendChild(container); // Re-appends in sorted order
+            });
+
+            lucide.createIcons();
+        }
+
+        function togglePinChart(tag) {
+            const index = pinnedCharts.indexOf(tag);
+            if (index > -1) {
+                pinnedCharts.splice(index, 1);
+            } else {
+                pinnedCharts.push(tag);
+            }
+            localStorage.setItem('teleboard_pinned_charts', JSON.stringify(pinnedCharts));
+            renderScalars();
+        }
+
+        function toggleLogScale(tag) {
+            const index = logarithmicCharts.indexOf(tag);
+            if (index > -1) {
+                logarithmicCharts.splice(index, 1);
+            } else {
+                logarithmicCharts.push(tag);
+            }
+            localStorage.setItem('teleboard_log_charts', JSON.stringify(logarithmicCharts));
+            renderScalars();
+        }
+
+        // --- TEXTS TAB IMPLEMENTATION ---
+        async function renderTexts() {
+            const container = document.getElementById('text-logs-container');
+            
+            const textPromises = selectedRuns.map(expId => 
+                fetch(`/api/runs/${encodeURIComponent(expId)}/texts`)
+                    .then(r => r.json())
+                    .then(data => ({ expId, data }))
+            );
+
+            const allTexts = await Promise.all(textPromises);
+
+            let html = '';
+            let hasAnyLogs = false;
+
+            allTexts.forEach(({ expId, data }) => {
+                const runIdx = allRuns.findIndex(r => r.exp_id === expId);
+                const color = getRunColor(runIdx);
+
+                Object.keys(data).forEach(tag => {
+                    hasAnyLogs = true;
+                    html += `
+                        <div class="border border-gray-150 rounded-xl overflow-hidden shadow-xs bg-[#fdfdfd]">
+                            <div class="px-4 py-2.5 bg-gray-50 flex items-center justify-between border-b border-gray-150">
+                                <div class="flex items-center gap-2">
+                                    <div class="w-2 h-2 rounded-full" style="background-color: ${color}"></div>
+                                    <span class="mono text-xs font-semibold text-gray-900">${expId}</span>
+                                </div>
+                                <span class="px-2 py-0.5 rounded text-[9px] font-mono border bg-white text-gray-600 border-gray-200 font-medium">${tag}</span>
+                            </div>
+                            <div class="p-4 overflow-x-auto bg-gray-900 text-gray-100 font-mono text-xs max-h-60 overflow-y-auto leading-relaxed space-y-1">
+                                ${data[tag].map(item => `
+                                    <div class="flex gap-4">
+                                        <span class="text-gray-500 shrink-0 font-medium select-none">[${getTranslation('step')} ${item.step}]</span>
+                                        <span class="whitespace-pre-wrap">${escapeHTML(item.value)}</span>
+                                    </div>
+                                `).join('')}
+                            </div>
+                        </div>
+                    `;
+                });
+            });
+
+            if (!hasAnyLogs) {
+                container.innerHTML = `<div class="text-center py-12 text-xs text-gray-400" data-i18n="no_text_logs">${getTranslation('no_text_logs')}</div>`;
+            } else {
+                container.innerHTML = html;
+            }
+        }
+
+        // --- IMAGES TAB IMPLEMENTATION ---
+        async function renderImages() {
+            const container = document.getElementById('image-gallery-container');
+            
+            const imagePromises = selectedRuns.map(expId => 
+                fetch(`/api/runs/${encodeURIComponent(expId)}/images`)
+                    .then(r => r.json())
+                    .then(data => ({ expId, data }))
+            );
+
+            const allImages = await Promise.all(imagePromises);
+
+            let html = '';
+            let hasAnyImages = false;
+
+            allImages.forEach(({ expId, data }) => {
+                const runIdx = allRuns.findIndex(r => r.exp_id === expId);
+                const color = getRunColor(runIdx);
+
+                Object.keys(data).forEach(tag => {
+                    hasAnyImages = true;
+                    const logPoints = data[tag];
+                    const safeTag = `${expId}-${tag}`.replace(/[\/\s\.\\]/g, '_');
+                    const firstImg = logPoints[logPoints.length - 1]; // defaults to latest image step
+
+                    html += `
+                        <div class="border border-gray-200 rounded-xl bg-[#fafafa] p-4 flex flex-col md:flex-row gap-6 shadow-xs">
+                            
+                            <!-- Control Panel Left -->
+                            <div class="md:w-64 flex flex-col justify-between shrink-0">
+                                <div class="space-y-3">
+                                    <div class="flex items-center gap-2">
+                                        <div class="w-2.5 h-2.5 rounded-full" style="background-color: ${color}"></div>
+                                        <span class="mono text-xs font-semibold text-gray-900 truncate" title="${expId}">${expId}</span>
+                                    </div>
+                                    <span class="block px-2 py-0.5 rounded text-[10px] font-mono border bg-white text-gray-700 border-gray-200 font-medium truncate" title="${tag}">${tag}</span>
+                                </div>
+
+                                <div class="space-y-2 mt-4 md:mt-0">
+                                    <div class="flex justify-between items-center text-xs font-mono text-gray-600">
+                                        <span data-i18n="active_step">ACTIVE STEP</span>
+                                        <span id="label-${safeTag}" class="font-bold text-gray-950">${getTranslation('step')} ${firstImg.step}</span>
+                                    </div>
+                                    <input type="range" 
+                                           min="0" 
+                                           max="${logPoints.length - 1}" 
+                                           value="${logPoints.length - 1}" 
+                                           class="w-full h-1 bg-gray-200 rounded appearance-none cursor-pointer accent-gray-900"
+                                           oninput="updateImageStep('${safeTag}', this, ${JSON.stringify(logPoints).replace(/"/g, '"')})">
+                                    <div class="flex justify-between text-[8px] text-gray-400 font-mono">
+                                        <span>${getTranslation('min')}: ${getTranslation('step').toUpperCase()} ${logPoints[0].step}</span>
+                                        <span>${getTranslation('max')}: ${getTranslation('step').toUpperCase()} ${logPoints[logPoints.length - 1].step}</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Preview Right -->
+                            <div class="flex-1 flex items-center justify-center bg-white border border-gray-150 rounded-xl overflow-hidden p-2 min-h-64 shadow-inner">
+                                <img id="img-${safeTag}" src="${firstImg.url}" class="max-h-72 object-contain rounded-lg hover:scale-[1.03] transition duration-300">
+                            </div>
+
+                        </div>
+                    `;
+                });
+            });
+
+            if (!hasAnyImages) {
+                container.innerHTML = `<div class="text-center py-12 text-xs text-gray-400" data-i18n="no_image_logs">${getTranslation('no_image_logs')}</div>`;
+            } else {
+                container.innerHTML = html;
+            }
+        }
+
+        function updateImageStep(safeTag, slider, points) {
+            const index = parseInt(slider.value);
+            const activePoint = points[index];
+            
+            document.getElementById(`label-${safeTag}`).textContent = `${getTranslation('step')} ${activePoint.step}`;
+            document.getElementById(`img-${safeTag}`).src = activePoint.url;
+        }
+
+        // --- AUDIOS TAB IMPLEMENTATION ---
+        async function renderAudios() {
+            const container = document.getElementById('audio-gallery-container');
+            
+            const audioPromises = selectedRuns.map(expId => 
+                fetch(`/api/runs/${encodeURIComponent(expId)}/audios`)
+                    .then(r => r.json())
+                    .then(data => ({ expId, data }))
+            );
+
+            const allAudios = await Promise.all(audioPromises);
+
+            let html = '';
+            let hasAnyAudios = false;
+
+            allAudios.forEach(({ expId, data }) => {
+                const runIdx = allRuns.findIndex(r => r.exp_id === expId);
+                const color = getRunColor(runIdx);
+
+                Object.keys(data).forEach(tag => {
+                    hasAnyAudios = true;
+                    html += `
+                        <div class="border border-gray-200 bg-[#fdfdfd] rounded-xl p-5 shadow-xs flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
+                            
+                            <!-- Audio Description -->
+                            <div class="space-y-2 max-w-sm shrink-0">
+                                <div class="flex items-center gap-2">
+                                    <div class="w-2.5 h-2.5 rounded-full" style="background-color: ${color}"></div>
+                                    <span class="mono text-xs font-semibold text-gray-900 truncate" title="${expId}">${expId}</span>
+                                </div>
+                                <span class="block px-2 py-0.5 rounded text-[10px] font-mono border bg-gray-50 text-gray-700 border-gray-200 font-medium truncate" title="${tag}">${tag}</span>
+                            </div>
+
+                            <!-- Players list inside this tag (usually multiple steps) -->
+                            <div class="flex-1 space-y-3 w-full">
+                                ${data[tag].slice(-3).reverse().map(item => `
+                                    <div class="flex items-center justify-between gap-4 p-2.5 bg-gray-50 rounded-lg border border-gray-150 shadow-xs">
+                                        <span class="mono text-[10px] text-gray-500 font-semibold shrink-0">${getTranslation('step').toUpperCase()} ${item.step}</span>
+                                        <audio controls class="h-8 max-w-full flex-1">
+                                            <source src="${item.url}" type="audio/wav">
+                                            <span data-i18n="audio_warning">${getTranslation('audio_warning')}</span>
+                                        </audio>
+                                    </div>
+                                `).join('')}
+                                ${data[tag].length > 3 ? `<p class="text-right text-[9px] text-gray-400 font-mono uppercase tracking-wider" data-i18n="latest_3_steps">${getTranslation('latest_3_steps')}</p>` : ''}
+                            </div>
+
+                        </div>
+                    `;
+                });
+            });
+
+            if (!hasAnyAudios) {
+                container.innerHTML = `<div class="text-center py-12 text-xs text-gray-400" data-i18n="no_audio_logs">${getTranslation('no_audio_logs')}</div>`;
+            } else {
+                container.innerHTML = html;
+            }
+        }
+
+        // TOOL UTILITY FUNCTIONS
+        function escapeHTML(str) {
+            return str.replace(/[&<>'"]/g, 
+                tag => ({
+                    '&': '&',
+                    '<': '<',
+                    '>': '>',
+                    "'": '&#39;',
+                    '"': '"'
+                }[tag] || tag)
+            );
+        }
+    </script>
+</body>
+</html>

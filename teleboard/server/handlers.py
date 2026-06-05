@@ -6,7 +6,7 @@ from pydantic import BaseModel
 import numpy as np
 from PIL import Image
 
-from .backends import BaseBackend
+from teleboard.server.backends import BaseBackend
 
 class LogPayload(BaseModel):
     exp_id: str
