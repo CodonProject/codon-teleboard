@@ -31,7 +31,7 @@ setup(
     name='codon-teleboard',
     version=get_version(),
     description='Codon teleboard package',
-    author='CodonTeam',
+    author='CodonProject',
     packages=find_packages(),
     install_requires=get_requirements(),
     python_requires='>=3.8'
