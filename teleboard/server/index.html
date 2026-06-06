@@ -62,8 +62,8 @@
         <div id="nav-container" class="w-full px-6 h-full flex items-center justify-between transition-all duration-300">
             <div class="flex items-center gap-3">
                 <div>
-                    <h1 class="mono text-sm uppercase tracking-widest font-semibold text-gray-900" data-i18n="title">CODON TELEBOARD</h1>
-                    <p class="text-[10px] text-gray-400 font-mono tracking-wider" data-i18n="academic_suite">ACADEMIC-INDUSTRIAL LAB SUITE</p>
+                    <h1 class="mono text-sm uppercase tracking-widest font-semibold text-gray-900" data-i18n="title">TELEBOARD</h1>
+                    <p class="text-[10px] text-gray-400 font-mono tracking-wider" data-i18n="academic_suite">LAB SUITE</p>
                 </div>
             </div>
             
@@ -278,7 +278,7 @@
         const TRANSLATIONS = {
             zh: {
                 title: "Teleboard",
-                academic_suite: "学术实验面板",
+                academic_suite: "实验面板",
                 refresh: "刷新",
                 experiments: "实验列表",
                 runs: "个运行",
@@ -330,7 +330,7 @@
             },
             en: {
                 title: "Teleboard",
-                academic_suite: "ACADEMIC LAB SUITE",
+                academic_suite: "LAB SUITE",
                 refresh: "Refresh",
                 experiments: "Experiments",
                 runs: "RUNS",
@@ -387,6 +387,7 @@
         let selectedRuns = [];
         let pinnedRuns = JSON.parse(localStorage.getItem('teleboard_pinned_runs')) || [];
         let pinnedCharts = JSON.parse(localStorage.getItem('teleboard_pinned_charts')) || [];
+        let disabledEmaCharts = JSON.parse(localStorage.getItem('teleboard_disabled_ema_charts')) || [];
         let logarithmicCharts = JSON.parse(localStorage.getItem('teleboard_log_charts')) || [];
         let expandedCharts = new Set(JSON.parse(localStorage.getItem('teleboard_expanded_charts')) || []);
         let hiddenDatasets = {}; // tag -> { runId: boolean }
@@ -397,6 +398,7 @@
         let chartsMap = {}; // tag -> Chart instance
         let smoothFactor = 0.0;
         let activeTab = 'scalars';
+        let runColorsMap = {};
 
         // WEBSOCKET LOGIC
         let ws = null;
@@ -534,8 +536,16 @@
             'rgba(75, 85, 99, 1)'     // Gray 600
         ];
 
-        function getRunColor(runIndex) {
-            return COLOR_PALETTE[runIndex % COLOR_PALETTE.length];
+        function getRunColor(expId) {
+            if (runColorsMap[expId]) {
+                return runColorsMap[expId];
+            }
+            // Check if we can pre-populate from allRuns if not found to respect original indices if possible, or just build up dynamically.
+            // A dynamic build up map ensures stable order of discovery.
+            const assignedCount = Object.keys(runColorsMap).length;
+            const color = COLOR_PALETTE[assignedCount % COLOR_PALETTE.length];
+            runColorsMap[expId] = color;
+            return color;
         }
 
         function getTranslation(key) {
@@ -787,9 +797,8 @@
             }
 
             const renderItem = (run) => {
-                const idx = allRuns.findIndex(r => r.exp_id === run.exp_id);
                 const dateStr = new Date(run.mtime * 1000).toLocaleString('zh-CN', { hour12: false });
-                const runColor = getRunColor(idx);
+                const runColor = getRunColor(run.exp_id);
                 const isSelected = selectedRuns.includes(run.exp_id);
                 const isPinned = pinnedRuns.includes(run.exp_id);
 
@@ -1249,6 +1258,8 @@
                 // Apply width class dynamically
                 container.className = `bg-white rounded-xl border border-gray-200 shadow-sm p-5 hover:shadow-md transition duration-300 flex flex-col gap-4 ${isChartExpanded ? 'col-span-full' : ''}`;
 
+                const isEmaDisabled = disabledEmaCharts.includes(tag);
+
                 // Inject up-to-date control buttons (Pin, Width Expand, Log Scale toggle)
                 container.innerHTML = `
                     <div class="flex items-center justify-between border-b border-gray-100 pb-2">
@@ -1264,6 +1275,11 @@
                                 <i data-lucide="${isChartExpanded ? 'minimize-2' : 'maximize-2'}" class="w-3.5 h-3.5 ${isChartExpanded ? 'text-blue-500 fill-blue-500' : ''}"></i>
                             </button>
                             
+                            <!-- INDIVIDUAL CHART EMA TOGGLE BUTTON -->
+                            <button onclick="toggleEma('${tag}')" class="px-2 py-0.5 text-[9px] font-mono border rounded transition ${!isEmaDisabled ? 'bg-blue-50 text-blue-700 border-blue-200 hover:bg-blue-100' : 'bg-gray-50 text-gray-400 border-gray-200 hover:bg-gray-100 hover:text-gray-500'}" title="Toggle EMA for this chart">
+                                EMA ${!isEmaDisabled ? 'ON' : 'OFF'}
+                            </button>
+
                             <button onclick="toggleLogScale('${tag}')" class="px-2 py-0.5 text-[9px] font-mono border rounded transition ${isLogScale ? 'bg-gray-900 text-white border-gray-900' : 'bg-white text-gray-600 border-gray-200 hover:bg-gray-50'}" title="Toggle Logarithmic Y-Axis">
                                 ${getTranslation('toggle_log')}
                             </button>
@@ -1281,12 +1297,14 @@
                 const datasets = [];
                 allScalarLogs.forEach(({ expId, data }) => {
                     if (data[tag] && data[tag].length > 0) {
-                        const runIdx = allRuns.findIndex(r => r.exp_id === expId);
-                        const color = getRunColor(runIdx);
+                        const color = getRunColor(expId);
 
                         const steps = data[tag].map(d => d.step);
                         const rawValues = data[tag].map(d => d.value);
-                        const smoothedValues = smoothCurve(rawValues, smoothFactor);
+                        
+                        // Check if EMA is bypassed locally
+                        const effectiveSmoothFactor = isEmaDisabled ? 0.00 : smoothFactor;
+                        const smoothedValues = smoothCurve(rawValues, effectiveSmoothFactor);
 
                         // Render both original and smoothed lines
                         datasets.push({
@@ -1302,7 +1320,7 @@
                         });
 
                         // Subtle transparent background dashed lines for raw data on hover/contrast if smoothing is present
-                        if (smoothFactor > 0.05 && !hideRawData) {
+                        if (effectiveSmoothFactor > 0.05 && !hideRawData) {
                             datasets.push({
                                 label: `${expId} (raw)`,
                                 data: steps.map((step, idx) => ({ x: step, y: rawValues[idx] })),
@@ -1418,6 +1436,17 @@
             renderScalars();
         }
 
+        function toggleEma(tag) {
+            const index = disabledEmaCharts.indexOf(tag);
+            if (index > -1) {
+                disabledEmaCharts.splice(index, 1);
+            } else {
+                disabledEmaCharts.push(tag);
+            }
+            localStorage.setItem('teleboard_disabled_ema_charts', JSON.stringify(disabledEmaCharts));
+            renderScalars();
+        }
+
         // --- TEXTS TAB IMPLEMENTATION ---
         async function renderTexts() {
             const container = document.getElementById('text-logs-container');
@@ -1434,8 +1463,7 @@
             let hasAnyLogs = false;
 
             allTexts.forEach(({ expId, data }) => {
-                const runIdx = allRuns.findIndex(r => r.exp_id === expId);
-                const color = getRunColor(runIdx);
+                const color = getRunColor(expId);
 
                 Object.keys(data).forEach(tag => {
                     hasAnyLogs = true;
@@ -1484,8 +1512,7 @@
             let hasAnyImages = false;
 
             allImages.forEach(({ expId, data }) => {
-                const runIdx = allRuns.findIndex(r => r.exp_id === expId);
-                const color = getRunColor(runIdx);
+                const color = getRunColor(expId);
 
                 Object.keys(data).forEach(tag => {
                     hasAnyImages = true;
@@ -1565,8 +1592,7 @@
             let hasAnyAudios = false;
 
             allAudios.forEach(({ expId, data }) => {
-                const runIdx = allRuns.findIndex(r => r.exp_id === expId);
-                const color = getRunColor(runIdx);
+                const color = getRunColor(expId);
 
                 Object.keys(data).forEach(tag => {
                     hasAnyAudios = true;
