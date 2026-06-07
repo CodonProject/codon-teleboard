@@ -596,7 +596,7 @@
                     document.querySelectorAll('.tab-btn').forEach(b => {
                         b.className = "tab-btn flex items-center gap-2 px-4 py-2 text-xs font-medium rounded-lg transition duration-200 text-gray-600 hover:bg-gray-50";
                     });
-                    btn.className = "tab-btn flex items-center gap-2 px-4 py-2 text-xs font-medium rounded-lg transition duration-200 bg-gray-950 text-white shadow";
+                    btn.className = "tab-btn flex items-center gap-2 px-4 py-2 text-xs font-medium rounded-lg transition duration-200 bg-gray-950 text-white";
 
                     // Content switch
                     document.querySelectorAll('.tab-content').forEach(cont => {
@@ -803,7 +803,7 @@
                 const isPinned = pinnedRuns.includes(run.exp_id);
 
                 return `
-                    <div class="run-item flex flex-col gap-1.5 p-3 rounded-lg border cursor-pointer transition ${isSelected ? 'border-gray-900 bg-gray-50/50' : 'border-gray-200 hover:bg-gray-50'} shadow-xs" 
+                    <div class="run-item flex flex-col gap-1.5 p-3 rounded-lg border cursor-pointer transition ${isSelected ? 'border-gray-900 bg-gray-50/50' : 'border-gray-200 hover:bg-gray-50'}" 
                          data-exp-id="${run.exp_id}">
                         <div class="flex items-center justify-between gap-2">
                             <div class="flex items-center gap-1.5 min-w-0" onclick="toggleRunSelection('${run.exp_id}')">
@@ -1256,7 +1256,7 @@
                 }
 
                 // Apply width class dynamically
-                container.className = `bg-white rounded-xl border border-gray-200 shadow-sm p-5 hover:shadow-md transition duration-300 flex flex-col gap-4 ${isChartExpanded ? 'col-span-full' : ''}`;
+                container.className = `bg-white rounded-xl border border-gray-200 p-5 hover:transition duration-300 flex flex-col gap-4 ${isChartExpanded ? 'col-span-full' : ''}`;
 
                 const isEmaDisabled = disabledEmaCharts.includes(tag);
 
@@ -1277,7 +1277,7 @@
                             
                             <!-- INDIVIDUAL CHART EMA TOGGLE BUTTON -->
                             <button onclick="toggleEma('${tag}')" class="px-2 py-0.5 text-[9px] font-mono border rounded transition ${!isEmaDisabled ? 'bg-blue-50 text-blue-700 border-blue-200 hover:bg-blue-100' : 'bg-gray-50 text-gray-400 border-gray-200 hover:bg-gray-100 hover:text-gray-500'}" title="Toggle EMA for this chart">
-                                EMA ${!isEmaDisabled ? 'ON' : 'OFF'}
+                                EMA
                             </button>
 
                             <button onclick="toggleLogScale('${tag}')" class="px-2 py-0.5 text-[9px] font-mono border rounded transition ${isLogScale ? 'bg-gray-900 text-white border-gray-900' : 'bg-white text-gray-600 border-gray-200 hover:bg-gray-50'}" title="Toggle Logarithmic Y-Axis">
